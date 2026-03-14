@@ -38,7 +38,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1200,
         system: systemPrompt,
         messages
@@ -48,11 +48,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
     if (!response.ok) {
       const errBody = await response.text();
       console.error('Claude API error:', response.status, errBody);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Claude API error', status: response.status, detail: errBody })
-      };
+      return { statusCode: response.status, body: JSON.stringify({ error: 'Claude API error' }) };
     }
 
     const data = await response.json();

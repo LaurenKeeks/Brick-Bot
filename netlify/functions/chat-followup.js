@@ -21,7 +21,7 @@ Keep your responses concise but enthusiastic — 2-4 short paragraphs max.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 800,
         system: systemPrompt,
         messages
