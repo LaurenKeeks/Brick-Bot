@@ -44,11 +44,11 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
-        'anthropic-version': '2024-10-22',
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 1200,
         system: systemPrompt,
         messages
