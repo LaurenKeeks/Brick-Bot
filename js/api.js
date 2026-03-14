@@ -59,9 +59,12 @@ var BrickBotAPI = (function () {
   }
 
   async function getSets(partNum, pageSize) {
-    var cacheKey = 'rb_sets_' + partNum;
+    // v2 cache key — invalidates old cached 404 errors from the broken endpoint
+    var cacheKey = 'rb_sets_v2_' + partNum + (pageSize ? '_' + pageSize : '');
     var cached = getCached(cacheKey);
     if (cached) return cached;
+    // Clear any old broken cache entry
+    localStorage.removeItem('rb_sets_' + partNum);
 
     var url = '/api/get-sets?part=' + encodeURIComponent(partNum);
     if (pageSize) url += '&page_size=' + pageSize;

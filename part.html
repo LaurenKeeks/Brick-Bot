@@ -70,11 +70,11 @@
       document.title = 'BrickBot — Part ' + partNum;
       BrickBotUI.showLoading(page);
 
-      // Fetch part, colors, and sets in parallel
+      // Fetch part + colors first (required), sets separately (non-critical)
       Promise.all([
         BrickBotAPI.getPart(partNum),
         BrickBotAPI.getColors(partNum),
-        BrickBotAPI.getSets(partNum)
+        BrickBotAPI.getSets(partNum).catch(function () { return { results: [], count: 0 }; })
       ]).then(function (results) {
         var part = results[0];
         var colorsData = results[1];
@@ -182,8 +182,8 @@
           showAllBtn.addEventListener('click', function () {
             showAllBtn.textContent = 'Loading...';
             showAllBtn.disabled = true;
-            // Fetch all sets
-            BrickBotAPI.getSets(partNum, totalSets).then(function (allData) {
+            // Fetch more sets (larger page size)
+            BrickBotAPI.getSets(partNum, 200).then(function (allData) {
               var allSets = allData.results || [];
               var grid = document.getElementById('sets-grid');
               grid.innerHTML = '';
