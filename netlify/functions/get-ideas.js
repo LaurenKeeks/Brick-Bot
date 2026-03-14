@@ -48,7 +48,11 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
     if (!response.ok) {
       const errBody = await response.text();
       console.error('Claude API error:', response.status, errBody);
-      return { statusCode: response.status, body: JSON.stringify({ error: 'Claude API error' }) };
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Claude API error', status: response.status, detail: errBody })
+      };
     }
 
     const data = await response.json();
