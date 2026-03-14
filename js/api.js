@@ -44,9 +44,11 @@ var BrickBotAPI = (function () {
   }
 
   async function getColors(partNum) {
-    var cacheKey = 'rb_colors_' + partNum;
+    // v2 cache key — old cache had no color_rgb values
+    var cacheKey = 'rb_colors_v2_' + partNum;
     var cached = getCached(cacheKey);
     if (cached) return cached;
+    localStorage.removeItem('rb_colors_' + partNum);
 
     var res = await fetch('/api/get-colors?part=' + encodeURIComponent(partNum));
     if (!res.ok) {
