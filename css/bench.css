@@ -1,0 +1,585 @@
+/* ============================================
+   Brick Bench Page
+   ============================================ */
+
+/* --- Active nav link --- */
+.nav-link--active {
+  color: var(--lego-yellow) !important;
+}
+
+/* --- Bench Hero / Page Header --- */
+.bench-hero {
+  background: var(--dark-navy);
+  padding: 40px 24px 24px;
+}
+
+.bench-hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.bench-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.bench-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+.bench-hero-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.bench-count-pill {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 16px;
+  border-radius: 20px;
+}
+
+.bench-clear-btn {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: color 0.2s;
+}
+
+.bench-clear-btn:hover {
+  color: var(--lego-red);
+}
+
+.bench-save-note {
+  max-width: 900px;
+  margin: 12px auto 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Quick Add Bar --- */
+.bench-quick-add {
+  background: var(--dark-navy);
+  padding: 0 24px 32px;
+}
+
+.bench-quick-label {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bench-quick-bar {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border-radius: var(--pill-radius);
+  padding: 6px 6px 6px 20px;
+  height: 56px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.bench-quick-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--dark-navy);
+  background: transparent;
+  min-width: 0;
+}
+
+.bench-quick-input::placeholder {
+  color: var(--muted-gray);
+  font-family: var(--font-primary);
+  font-size: 14px;
+}
+
+.bench-quick-btn {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 0 24px;
+  height: 44px;
+  border-radius: 22px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-primary);
+}
+
+.bench-quick-btn:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+.bench-quick-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bench-quick-help {
+  max-width: 900px;
+  margin: 10px auto 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.bench-quick-errors {
+  max-width: 900px;
+  margin: 8px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bench-error-pill {
+  display: inline-block;
+  background: rgba(204, 0, 0, 0.15);
+  color: var(--lego-red);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* --- Piece Grid --- */
+.bench-grid-section {
+  background: var(--light-gray);
+  padding: 40px 24px;
+}
+
+.bench-grid {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.bench-piece-card {
+  background: var(--white);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bench-piece-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.bench-piece-remove {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--muted-gray);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  font-family: var(--font-primary);
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.bench-piece-card:hover .bench-piece-remove {
+  opacity: 1;
+}
+
+.bench-piece-remove:hover {
+  color: var(--lego-red);
+}
+
+.bench-piece-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+}
+
+.bench-piece-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark-navy);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.bench-piece-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted-gray);
+}
+
+/* Ghost card */
+.bench-piece-ghost {
+  border: 2px dashed #ccc;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  transition: border-color 0.2s;
+}
+
+.bench-piece-ghost:hover {
+  border-color: var(--lego-yellow);
+  transform: none;
+  box-shadow: none;
+}
+
+.bench-ghost-icon {
+  font-size: 32px;
+  font-weight: 300;
+  color: #ccc;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.bench-ghost-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-gray);
+}
+
+/* Empty state */
+.bench-empty {
+  text-align: center;
+  padding: 48px 24px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.bench-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bench-empty-text {
+  font-size: 16px;
+  color: var(--muted-gray);
+  line-height: 1.5;
+}
+
+.bench-empty-arrow {
+  font-size: 24px;
+  color: var(--muted-gray);
+  margin-top: 12px;
+}
+
+/* --- Action Buttons --- */
+.bench-actions {
+  background: var(--white);
+  padding: 32px 24px 16px;
+}
+
+.bench-actions-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.bench-action-btn {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 32px;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid var(--lego-yellow);
+}
+
+.bench-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bench-action-btn--fill {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+}
+
+.bench-action-btn--fill:hover {
+  background: var(--lego-red);
+  border-color: var(--lego-red);
+  color: var(--white);
+}
+
+.bench-action-btn--outline {
+  background: transparent;
+  color: var(--lego-yellow);
+}
+
+.bench-action-btn--outline:hover {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+}
+
+.bench-actions-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-gray);
+  margin-top: 12px;
+}
+
+/* --- Age + Topic Filters --- */
+.bench-filters {
+  background: var(--white);
+  padding: 0 24px 40px;
+}
+
+.bench-filters-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* --- Results Area --- */
+.bench-results {
+  background: var(--light-gray);
+  padding: 40px 24px;
+}
+
+.bench-results-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Build idea cards */
+.bench-idea-card {
+  background: var(--white);
+  border-left: 4px solid var(--lego-yellow);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.bench-idea-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.bench-idea-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bench-idea-difficulty {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--white);
+  padding: 2px 10px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.bench-idea-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dark-navy);
+  margin-bottom: 6px;
+}
+
+.bench-idea-desc {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.bench-idea-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bench-idea-piece-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted-gray);
+  background: var(--light-gray);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Challenge card */
+.bench-challenge-card {
+  background: var(--white);
+  border-left: 4px solid var(--lego-red);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+}
+
+.bench-challenge-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--dark-navy);
+  margin-bottom: 8px;
+}
+
+.bench-challenge-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--lego-red);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.bench-challenge-desc {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.bench-challenge-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.bench-challenge-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bench-challenge-timer {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark-navy);
+  background: var(--light-gray);
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.bench-challenge-bonus {
+  font-size: 14px;
+  color: var(--lego-yellow);
+  font-weight: 700;
+  font-style: italic;
+}
+
+.bench-challenge-share {
+  background: var(--lego-green);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-primary);
+  transition: opacity 0.2s;
+  margin-left: auto;
+}
+
+.bench-challenge-share:hover {
+  opacity: 0.85;
+}
+
+/* Toast — base styles in styles.css, bench-specific override */
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  .bench-hero-inner {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bench-hero-right {
+    align-self: flex-start;
+  }
+
+  .bench-title {
+    font-size: 26px;
+  }
+
+  .bench-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .bench-actions-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bench-action-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .bench-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .bench-piece-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .bench-quick-bar {
+    height: 52px;
+    padding: 4px 4px 4px 16px;
+  }
+}

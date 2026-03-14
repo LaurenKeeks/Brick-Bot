@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — My Brick Bench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/bench.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link--active">My Bench</a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <section class="bench-hero">
+    <div class="bench-hero-inner">
+      <div class="bench-hero-left">
+        <h1 class="bench-title">My Brick Bench</h1>
+        <p class="bench-subtitle">Add your pieces, then ask BrickBot what you can build.</p>
+      </div>
+      <div class="bench-hero-right">
+        <span class="bench-count-pill" id="bench-count-pill">3 pieces</span>
+        <button class="bench-clear-btn" id="bench-clear-btn">Clear all</button>
+      </div>
+    </div>
+    <p class="bench-save-note">Your bench is saved on this device.</p>
+  </section>
+
+  <!-- Quick Add Bar -->
+  <section class="bench-quick-add">
+    <label class="bench-quick-label">QUICK ADD — TYPE PART NUMBERS</label>
+    <div class="bench-quick-bar">
+      <input
+        type="text"
+        id="bench-quick-input"
+        class="bench-quick-input"
+        placeholder="3001, 3005, 3622, 3010, 3040..."
+        autocomplete="off"
+      >
+      <button class="bench-quick-btn" id="bench-quick-btn">+ Add All</button>
+    </div>
+    <p class="bench-quick-help">Separate part numbers with commas. You can add up to 30 pieces.</p>
+    <div class="bench-quick-errors" id="bench-quick-errors"></div>
+  </section>
+
+  <!-- Piece Grid -->
+  <section class="bench-grid-section">
+    <div class="bench-grid" id="bench-grid">
+      <!-- Piece cards rendered by bench.js -->
+
+      <!-- Ghost card -->
+      <div class="bench-piece-card bench-piece-ghost" id="bench-ghost-card">
+        <div class="bench-ghost-icon">+</div>
+        <div class="bench-ghost-text">Add a piece</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Action Buttons -->
+  <section class="bench-actions" id="bench-actions">
+    <div class="bench-actions-inner">
+      <button class="bench-action-btn bench-action-btn--fill" id="bench-build-btn">What can I build?</button>
+      <button class="bench-action-btn bench-action-btn--outline" id="bench-challenge-btn">Challenge me!</button>
+    </div>
+    <p class="bench-actions-hint">BrickBot will use the pieces on your bench</p>
+  </section>
+
+  <!-- Age + Topic Selector -->
+  <section class="bench-filters">
+    <div class="bench-filters-inner">
+      <label class="ideas-label">Who's building?</label>
+      <div class="age-group-btns" id="bench-age-btns">
+        <button class="age-btn" data-age="Ages 5-8">Ages 5&#x2013;8</button>
+        <button class="age-btn active" data-age="Ages 9-12">Ages 9&#x2013;12</button>
+        <button class="age-btn" data-age="Ages 13+">Ages 13+</button>
+      </div>
+      <label class="ideas-label">Topics</label>
+      <div class="topic-chips" id="bench-topic-chips">
+        <button class="topic-chip" data-topic="Animals">Animals</button>
+        <button class="topic-chip" data-topic="Vehicles">Vehicles</button>
+        <button class="topic-chip" data-topic="Buildings">Buildings</button>
+        <button class="topic-chip" data-topic="Space">Space</button>
+        <button class="topic-chip" data-topic="Fantasy">Fantasy</button>
+        <button class="topic-chip" data-topic="Robots">Robots</button>
+        <button class="topic-chip" data-topic="Nature">Nature</button>
+        <button class="topic-chip" data-topic="Food">Food</button>
+        <button class="topic-chip" data-topic="Sports">Sports</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results Area -->
+  <section class="bench-results" id="bench-results" style="display:none;">
+    <!-- Populated by JS -->
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/bench.js"></script>
+</body>
+</html>

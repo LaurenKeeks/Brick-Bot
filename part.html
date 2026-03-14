@@ -20,6 +20,7 @@
       </a>
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link-bench">My Bench<span class="bench-badge" id="bench-badge"></span></a>
         <a href="mystery.html" class="nav-link">Photo ID</a>
       </nav>
     </div>
@@ -200,6 +201,12 @@
         html += '  </div>';
         html += '</section>';
 
+        // --- Add to Bench ---
+        html += '<div class="add-to-bench-row">';
+        html += '  <button class="btn-add-bench" id="btn-add-bench">+ Add to My Bench</button>';
+        html += '  <span class="bench-hint">Add this piece to your bench and get ideas for combinations</span>';
+        html += '</div>';
+
         page.innerHTML = html;
 
         // --- BrickBot Ideas Logic ---
@@ -347,6 +354,62 @@
         blBtn.href = 'https://www.bricklink.com/v2/catalog/catalogitem.page?P=' + encodeURIComponent(part.part_num);
         azBtn.href = 'https://www.amazon.com/s?k=LEGO+' + encodeURIComponent(part.name);
         buySection.style.display = 'flex';
+
+        // --- Add to Bench ---
+        var addBenchBtn = document.getElementById('btn-add-bench');
+        addBenchBtn.addEventListener('click', function () {
+          var benchPieces = [];
+          try { benchPieces = JSON.parse(localStorage.getItem('brickbot_bench_pieces') || '[]'); } catch (e) {}
+
+          // Check duplicate
+          var already = benchPieces.some(function (p) { return p.part_num === part.part_num; });
+          if (already) {
+            showPartToast('Already on your bench! <a href="bench.html">View Bench \u2192</a>');
+            return;
+          }
+          if (benchPieces.length >= 30) {
+            showPartToast('Bench is full! Max 30 pieces.');
+            return;
+          }
+
+          benchPieces.push(part);
+          try { localStorage.setItem('brickbot_bench_pieces', JSON.stringify(benchPieces)); } catch (e) {}
+
+          addBenchBtn.textContent = 'Added!';
+          addBenchBtn.disabled = true;
+          updateBenchBadge();
+          showPartToast('Added ' + BrickBotUI.escapeHtml(part.name) + ' to your bench! <a href="bench.html">View Bench \u2192</a>');
+        });
+
+        // --- Bench badge ---
+        function updateBenchBadge() {
+          try {
+            var pieces = JSON.parse(localStorage.getItem('brickbot_bench_pieces') || '[]');
+            var badge = document.getElementById('bench-badge');
+            if (badge && pieces.length > 0) {
+              badge.textContent = pieces.length;
+              badge.style.display = 'inline-block';
+            } else if (badge) {
+              badge.style.display = 'none';
+            }
+          } catch (e) {}
+        }
+        updateBenchBadge();
+
+        // --- Toast for part page ---
+        function showPartToast(htmlContent) {
+          var existing = document.querySelector('.bench-toast');
+          if (existing) existing.remove();
+          var toast = document.createElement('div');
+          toast.className = 'bench-toast';
+          toast.innerHTML = htmlContent;
+          document.body.appendChild(toast);
+          requestAnimationFrame(function () { toast.classList.add('visible'); });
+          setTimeout(function () {
+            toast.classList.remove('visible');
+            setTimeout(function () { toast.remove(); }, 300);
+          }, 3500);
+        }
 
         // --- Show all sets handler ---
         var showAllBtn = document.getElementById('show-all-sets');

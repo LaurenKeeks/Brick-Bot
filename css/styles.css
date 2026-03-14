@@ -107,6 +107,96 @@ img {
   color: var(--lego-yellow);
 }
 
+.nav-link-bench {
+  position: relative;
+}
+
+.bench-badge {
+  display: none;
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-size: 11px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  padding: 0 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* --- Add to Bench Row --- */
+.add-to-bench-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  padding: 24px;
+  background: var(--light-gray);
+  flex-wrap: wrap;
+}
+
+.btn-add-bench {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 24px;
+  border-radius: var(--btn-radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: background 0.2s;
+}
+
+.btn-add-bench:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+.btn-add-bench:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--lego-green);
+  color: var(--white);
+}
+
+.bench-hint {
+  font-size: 13px;
+  color: var(--muted-gray);
+}
+
+/* --- Toast (shared) --- */
+.bench-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--dark-navy);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--btn-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.bench-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.bench-toast a {
+  color: var(--lego-yellow);
+  text-decoration: underline;
+  margin-left: 4px;
+}
+
 /* --- Hero --- */
 .hero {
   background: var(--dark-navy);

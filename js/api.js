@@ -110,11 +110,41 @@ var BrickBotAPI = (function () {
     return res.json();
   }
 
+  async function getBenchIdeas(pieces, ageGroup, topics) {
+    var res = await fetch('/api/get-bench-ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pieces: pieces,
+        ageGroup: ageGroup,
+        topics: topics
+      })
+    });
+    if (!res.ok) throw new Error('Failed to get bench ideas');
+    return res.json();
+  }
+
+  async function getChallenge(pieces, ageGroup, topics) {
+    var res = await fetch('/api/get-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pieces: pieces,
+        ageGroup: ageGroup,
+        topics: topics
+      })
+    });
+    if (!res.ok) throw new Error('Failed to get challenge');
+    return res.json();
+  }
+
   return {
     getPart: getPart,
     getColors: getColors,
     getSets: getSets,
     getIdeas: getIdeas,
-    chatFollowup: chatFollowup
+    chatFollowup: chatFollowup,
+    getBenchIdeas: getBenchIdeas,
+    getChallenge: getChallenge
   };
 })();
