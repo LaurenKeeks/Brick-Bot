@@ -35,7 +35,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
       : [{ role: 'user', content: userPrompt }];
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5-20250514',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 1200,
       system: systemPrompt,
       messages

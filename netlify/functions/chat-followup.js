@@ -18,7 +18,7 @@ Keep your responses concise but enthusiastic — 2-4 short paragraphs max.`;
     const messages = [...(conversationHistory || []), { role: 'user', content: message }];
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5-20250514',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 800,
       system: systemPrompt,
       messages
