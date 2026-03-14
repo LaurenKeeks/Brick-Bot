@@ -5,10 +5,16 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
+  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'API key not configured' }) };
+  }
+
   try {
     const { partName, partNumber, category, ageGroup, topics, conversationHistory } = JSON.parse(event.body);
 
-    const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+    const client = new Anthropic({ apiKey });
+    const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250514';
 
     const systemPrompt = `You are BrickBot, an enthusiastic LEGO-obsessed AI assistant for kids and fans of all ages.
 You give creative, encouraging, specific build ideas. You speak in a friendly, exciting tone.
@@ -35,7 +41,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
       : [{ role: 'user', content: userPrompt }];
 
     const response = await client.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model,
       max_tokens: 1200,
       system: systemPrompt,
       messages
@@ -47,7 +53,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
       body: JSON.stringify({ ideas: response.content[0].text })
     };
   } catch (err) {
-    console.error('get-ideas error:', err);
+    console.error('get-ideas error:', err.message);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
