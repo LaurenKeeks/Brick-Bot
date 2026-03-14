@@ -155,18 +155,190 @@
           html += '</section>';
         }
 
-        // --- BrickBot Ideas placeholder (Phase 3+) ---
+        // --- BrickBot Build Ideas ---
         html += '<section class="ideas-section">';
         html += '  <div class="ideas-card">';
         html += '    <div class="ideas-header">';
         html += '      <span class="ideas-icon">🤖</span>';
         html += '      <h2 class="ideas-title">BrickBot says...</h2>';
         html += '    </div>';
-        html += '    <p class="ideas-coming-soon">AI build ideas coming soon! BrickBot will suggest creative builds using this piece.</p>';
+
+        // Age group selector
+        html += '    <div class="ideas-controls">';
+        html += '      <label class="ideas-label">Age group</label>';
+        html += '      <div class="age-group-btns" id="age-group-btns">';
+        html += '        <button class="age-btn" data-age="Ages 5-8">Ages 5\u20138</button>';
+        html += '        <button class="age-btn active" data-age="Ages 9-12">Ages 9\u201312</button>';
+        html += '        <button class="age-btn" data-age="Ages 13+">Ages 13+</button>';
+        html += '      </div>';
+
+        // Topic chips
+        html += '      <label class="ideas-label">Topics</label>';
+        html += '      <div class="topic-chips" id="topic-chips">';
+        var topicsList = ['Animals', 'Vehicles', 'Buildings', 'Space', 'Fantasy', 'Robots', 'Nature', 'Food', 'Sports'];
+        topicsList.forEach(function (t) {
+          html += '<button class="topic-chip" data-topic="' + t + '">' + t + '</button>';
+        });
+        html += '      </div>';
+
+        // Get ideas button
+        html += '      <button class="get-ideas-btn" id="get-ideas-btn">Get ideas \u2192</button>';
+        html += '    </div>';
+
+        // Results container
+        html += '    <div class="ideas-results" id="ideas-results"></div>';
+
+        // Follow-up chat
+        html += '    <div class="chat-section" id="chat-section" style="display:none;">';
+        html += '      <div class="chat-messages" id="chat-messages"></div>';
+        html += '      <form class="chat-form" id="chat-form">';
+        html += '        <input type="text" class="chat-input" id="chat-input" placeholder="Ask BrickBot for more ideas..." autocomplete="off">';
+        html += '        <button type="submit" class="chat-send-btn">Send</button>';
+        html += '      </form>';
+        html += '    </div>';
+
         html += '  </div>';
         html += '</section>';
 
         page.innerHTML = html;
+
+        // --- BrickBot Ideas Logic ---
+        var selectedAge = 'Ages 9-12';
+        var selectedTopics = [];
+        var conversationHistory = [];
+
+        // Age group buttons
+        var ageBtns = document.querySelectorAll('.age-btn');
+        ageBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            ageBtns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            selectedAge = btn.getAttribute('data-age');
+          });
+        });
+
+        // Topic chips (multi-select)
+        var topicChips = document.querySelectorAll('.topic-chip');
+        topicChips.forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            var topic = chip.getAttribute('data-topic');
+            chip.classList.toggle('active');
+            if (chip.classList.contains('active')) {
+              selectedTopics.push(topic);
+            } else {
+              selectedTopics = selectedTopics.filter(function (t) { return t !== topic; });
+            }
+          });
+        });
+
+        // Get Ideas button
+        var getIdeasBtn = document.getElementById('get-ideas-btn');
+        var ideasResults = document.getElementById('ideas-results');
+        var chatSection = document.getElementById('chat-section');
+
+        getIdeasBtn.addEventListener('click', function () {
+          getIdeasBtn.disabled = true;
+          getIdeasBtn.textContent = 'Thinking...';
+          ideasResults.innerHTML =
+            '<div class="ideas-loading">' +
+              '<div class="loading-spinner"></div>' +
+              '<p class="loading-text">BrickBot is thinking...</p>' +
+            '</div>';
+
+          conversationHistory = [];
+
+          BrickBotAPI.getIdeas(
+            part.name, part.part_num, '', selectedAge, selectedTopics, []
+          ).then(function (data) {
+            var ideas = BrickBotUI.parseIdeas(data.ideas);
+
+            // Store assistant response in conversation history
+            conversationHistory.push(
+              { role: 'user', content: 'Give me 5 build ideas for ' + part.name + ' (' + part.part_num + ') for ' + selectedAge + '.' },
+              { role: 'assistant', content: data.ideas }
+            );
+
+            if (ideas.length === 0) {
+              ideasResults.innerHTML = '<p class="ideas-raw">' + BrickBotUI.escapeHtml(data.ideas) + '</p>';
+            } else {
+              var cardsHtml = '';
+              ideas.forEach(function (idea, i) {
+                var badgeColor = BrickBotUI.difficultyColor(idea.difficulty);
+                cardsHtml += '<div class="idea-card">';
+                cardsHtml += '  <div class="idea-card-header">';
+                cardsHtml += '    <span class="idea-number">IDEA ' + (i + 1) + '</span>';
+                cardsHtml += '    <span class="idea-difficulty" style="background:' + badgeColor + ';">' + BrickBotUI.escapeHtml(idea.difficulty) + '</span>';
+                cardsHtml += '  </div>';
+                cardsHtml += '  <h3 class="idea-name">' + BrickBotUI.escapeHtml(idea.name) + '</h3>';
+                cardsHtml += '  <p class="idea-desc">' + BrickBotUI.escapeHtml(idea.description) + '</p>';
+                cardsHtml += '</div>';
+              });
+              ideasResults.innerHTML = cardsHtml;
+            }
+
+            // Show chat section
+            chatSection.style.display = 'block';
+
+            getIdeasBtn.disabled = false;
+            getIdeasBtn.textContent = 'Get ideas \u2192';
+          }).catch(function (err) {
+            ideasResults.innerHTML =
+              '<p class="ideas-error">BrickBot is taking a nap \u2014 try again in a second!</p>' +
+              '<button class="retry-btn" onclick="document.getElementById(\'get-ideas-btn\').click()">Retry</button>';
+            getIdeasBtn.disabled = false;
+            getIdeasBtn.textContent = 'Get ideas \u2192';
+          });
+        });
+
+        // Follow-up chat
+        var chatForm = document.getElementById('chat-form');
+        var chatInput = document.getElementById('chat-input');
+        var chatMessages = document.getElementById('chat-messages');
+
+        chatForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var message = chatInput.value.trim();
+          if (!message) return;
+
+          // Show user message
+          chatMessages.innerHTML +=
+            '<div class="chat-bubble chat-user">' +
+              '<p>' + BrickBotUI.escapeHtml(message) + '</p>' +
+            '</div>';
+          chatInput.value = '';
+
+          // Show typing indicator
+          chatMessages.innerHTML +=
+            '<div class="chat-bubble chat-bot chat-typing" id="chat-typing">' +
+              '<p>BrickBot is thinking...</p>' +
+            '</div>';
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          // Add user message to history
+          conversationHistory.push({ role: 'user', content: message });
+
+          BrickBotAPI.chatFollowup(message, conversationHistory).then(function (data) {
+            // Remove typing indicator
+            var typing = document.getElementById('chat-typing');
+            if (typing) typing.remove();
+
+            // Add bot reply
+            conversationHistory.push({ role: 'assistant', content: data.reply });
+            chatMessages.innerHTML +=
+              '<div class="chat-bubble chat-bot">' +
+                '<span class="chat-bot-icon">🤖</span>' +
+                '<p>' + BrickBotUI.escapeHtml(data.reply) + '</p>' +
+              '</div>';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }).catch(function () {
+            var typing = document.getElementById('chat-typing');
+            if (typing) typing.remove();
+            chatMessages.innerHTML +=
+              '<div class="chat-bubble chat-bot">' +
+                '<p>Oops! BrickBot couldn\u2019t respond. Try again!</p>' +
+              '</div>';
+          });
+        });
 
         // --- Buy links ---
         var buySection = document.getElementById('buy-links');

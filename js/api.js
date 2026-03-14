@@ -78,5 +78,41 @@ var BrickBotAPI = (function () {
     return data;
   }
 
-  return { getPart: getPart, getColors: getColors, getSets: getSets };
+  async function getIdeas(partName, partNumber, category, ageGroup, topics, conversationHistory) {
+    var res = await fetch('/api/get-ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        partName: partName,
+        partNumber: partNumber,
+        category: category || 'General',
+        ageGroup: ageGroup,
+        topics: topics,
+        conversationHistory: conversationHistory || []
+      })
+    });
+    if (!res.ok) throw new Error('Failed to get ideas');
+    return res.json();
+  }
+
+  async function chatFollowup(message, conversationHistory) {
+    var res = await fetch('/api/chat-followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: message,
+        conversationHistory: conversationHistory || []
+      })
+    });
+    if (!res.ok) throw new Error('Failed to send message');
+    return res.json();
+  }
+
+  return {
+    getPart: getPart,
+    getColors: getColors,
+    getSets: getSets,
+    getIdeas: getIdeas,
+    chatFollowup: chatFollowup
+  };
 })();

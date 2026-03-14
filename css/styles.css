@@ -702,7 +702,7 @@ img {
   color: var(--white);
 }
 
-/* --- Ideas Placeholder --- */
+/* --- BrickBot Ideas Section --- */
 .ideas-section {
   background: var(--light-gray);
   padding: 48px 24px;
@@ -722,7 +722,7 @@ img {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .ideas-icon {
@@ -735,9 +735,293 @@ img {
   color: var(--dark-navy);
 }
 
-.ideas-coming-soon {
+/* Controls */
+.ideas-controls {
+  margin-bottom: 24px;
+}
+
+.ideas-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--muted-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.age-group-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.age-btn {
+  padding: 8px 20px;
+  border-radius: var(--btn-radius);
+  font-weight: 700;
+  font-size: 14px;
+  border: 2px solid var(--light-gray);
+  background: var(--white);
+  color: var(--dark-navy);
+  transition: all 0.2s;
+}
+
+.age-btn:hover {
+  border-color: var(--lego-yellow);
+}
+
+.age-btn.active {
+  background: var(--lego-yellow);
+  border-color: var(--lego-yellow);
+  color: var(--dark-navy);
+}
+
+.topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.topic-chip {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid var(--light-gray);
+  background: var(--white);
+  color: var(--dark-navy);
+  transition: all 0.2s;
+}
+
+.topic-chip:hover {
+  border-color: var(--lego-yellow);
+}
+
+.topic-chip.active {
+  background: var(--lego-yellow);
+  border-color: var(--lego-yellow);
+  color: var(--dark-navy);
+}
+
+.get-ideas-btn {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 32px;
+  border-radius: var(--btn-radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: background 0.2s;
+}
+
+.get-ideas-btn:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+.get-ideas-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ideas loading */
+.ideas-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.ideas-loading .loading-spinner {
+  border-color: rgba(26, 26, 46, 0.1);
+  border-top-color: var(--lego-yellow);
+}
+
+.ideas-loading .loading-text {
+  color: var(--muted-gray);
+}
+
+/* Idea cards */
+.ideas-results {
+  margin-top: 4px;
+}
+
+.idea-card {
+  background: var(--light-gray);
+  border-radius: var(--card-radius);
+  padding: 20px 24px;
+  margin-bottom: 12px;
+}
+
+.idea-card:last-child {
+  margin-bottom: 0;
+}
+
+.idea-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.idea-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.idea-difficulty {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--white);
+  padding: 2px 10px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.idea-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dark-navy);
+  margin-bottom: 6px;
+}
+
+.idea-desc {
   font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.ideas-raw {
+  white-space: pre-wrap;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.ideas-error {
+  color: var(--lego-red);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.retry-btn {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: var(--btn-radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+}
+
+/* Follow-up Chat */
+.chat-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--light-gray);
+  padding-top: 20px;
+}
+
+.chat-messages {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.chat-bubble {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.chat-bubble p {
+  white-space: pre-wrap;
+}
+
+.chat-user {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bot {
+  background: var(--light-gray);
+  color: var(--dark-navy);
+  border-bottom-left-radius: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.chat-bot-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chat-typing {
+  opacity: 0.6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
+.chat-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--light-gray);
+  border-radius: var(--pill-radius);
+  font-family: var(--font-primary);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  border-color: var(--lego-yellow);
+}
+
+.chat-send-btn {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 0 24px;
+  border-radius: var(--pill-radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.chat-send-btn:hover {
+  background: var(--lego-red);
+  color: var(--white);
 }
 
 /* --- Buy Links --- */
@@ -833,6 +1117,14 @@ img {
     flex-direction: column;
     align-items: center;
     gap: 12px;
+  }
+
+  .ideas-card {
+    padding: 20px;
+  }
+
+  .chat-bubble {
+    max-width: 92%;
   }
 }
 

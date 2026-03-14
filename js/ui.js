@@ -36,10 +36,39 @@ var BrickBotUI = (function () {
     localStorage.setItem('brickbot_recent', JSON.stringify(recent));
   }
 
+  function parseIdeas(text) {
+    var ideas = [];
+    var blocks = text.split(/IDEA \d+:/i).filter(Boolean);
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      var nameMatch = block.match(/^(.+?)\n/);
+      var diffMatch = block.match(/DIFFICULTY:\s*(.+?)(?:\n|$)/i);
+      var descMatch = block.match(/DESCRIPTION:\s*([\s\S]+?)(?=IDEA \d+:|$)/i);
+      if (nameMatch && diffMatch && descMatch) {
+        ideas.push({
+          name: nameMatch[1].trim(),
+          difficulty: diffMatch[1].trim(),
+          description: descMatch[1].trim()
+        });
+      }
+    }
+    return ideas;
+  }
+
+  function difficultyColor(difficulty) {
+    var d = difficulty.toLowerCase();
+    if (d.indexOf('beginner') !== -1) return '#00A650';
+    if (d.indexOf('intermediate') !== -1) return '#FFD700';
+    if (d.indexOf('advanced') !== -1) return '#CC0000';
+    return '#888888';
+  }
+
   return {
     showError: showError,
     showLoading: showLoading,
     escapeHtml: escapeHtml,
-    addRecentLookup: addRecentLookup
+    addRecentLookup: addRecentLookup,
+    parseIdeas: parseIdeas,
+    difficultyColor: difficultyColor
   };
 })();
