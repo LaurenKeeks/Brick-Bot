@@ -3,13 +3,20 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  // Diagnostic: check if API key is present
-  const apiKey = process.env.CLAUDE_API_KEY;
+  // Diagnostic: check API key format
+  const apiKey = (process.env.CLAUDE_API_KEY || '').trim();
+  const keyInfo = {
+    present: !!process.env.CLAUDE_API_KEY,
+    length: apiKey.length,
+    prefix: apiKey.substring(0, 10),
+    hasWhitespace: apiKey !== process.env.CLAUDE_API_KEY,
+    relatedEnvVars: Object.keys(process.env).filter(k => k.includes('CLAUDE') || k.includes('ANTHROPIC') || k.includes('API_KEY'))
+  };
   if (!apiKey) {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'CLAUDE_API_KEY env var is not set', envKeys: Object.keys(process.env).filter(k => k.includes('CLAUDE') || k.includes('ANTHROPIC') || k.includes('API')) })
+      body: JSON.stringify({ error: 'CLAUDE_API_KEY is empty', keyInfo })
     };
   }
 
@@ -61,7 +68,7 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Claude API error', status: response.status, detail: errBody })
+        body: JSON.stringify({ error: 'Claude API error', status: response.status, detail: errBody, keyInfo })
       };
     }
 
