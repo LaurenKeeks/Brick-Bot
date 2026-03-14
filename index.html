@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — The LEGO Piece Detective</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="#about" class="nav-link">About</a>
+        <a href="#how-it-works" class="nav-link">How it works</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1 class="hero-headline">What <em>IS</em> that piece?</h1>
+    <p class="hero-tagline">Know your bricks. Build anything.</p>
+
+    <!-- Search Area -->
+    <div class="search-area">
+      <form class="search-form" id="search-form">
+        <div class="search-bar">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            id="part-search"
+            class="search-input"
+            placeholder="Enter a part number (e.g. 3001)"
+            autocomplete="off"
+          >
+          <button type="submit" class="search-btn">Search</button>
+        </div>
+      </form>
+      <button class="camera-btn" id="camera-btn">
+        <span class="camera-emoji">📷</span> Take a photo
+      </button>
+    </div>
+
+    <!-- Example Chips -->
+    <div class="example-chips">
+      <button class="chip" data-part="3001">3001 — 2x4 Brick</button>
+      <button class="chip" data-part="3005">3005 — 1x1 Brick</button>
+      <button class="chip" data-part="3622">3622 — 1x3 Brick</button>
+      <button class="chip" data-part="3040">3040 — Roof Tile</button>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <h2 class="section-title">How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-icon">🔍</div>
+        <h3 class="step-title">1. Find your piece</h3>
+        <p class="step-desc">Type in a part number or snap a photo of your mystery brick.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">🤖</div>
+        <h3 class="step-title">2. BrickBot looks it up</h3>
+        <p class="step-desc">We search thousands of parts to identify your piece instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">💡</div>
+        <h3 class="step-title">3. Get AI build ideas</h3>
+        <p class="step-desc">BrickBot suggests creative builds using your piece as the star.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Lookups -->
+  <section class="recent-lookups" id="recent-lookups">
+    <h2 class="section-title">People are looking up...</h2>
+    <div class="recent-grid" id="recent-grid">
+      <!-- Populated by JS from localStorage -->
+    </div>
+    <p class="recent-empty" id="recent-empty">Search for a part to see recent lookups here!</p>
+  </section>
+
+  <!-- About -->
+  <section class="about" id="about">
+    <h2 class="section-title">About BrickBot</h2>
+    <p class="about-text">
+      BrickBot is a free tool that helps LEGO fans identify pieces, explore colors and sets,
+      and get AI-powered build ideas. Whether you found a mystery brick in the couch cushions or
+      want creative inspiration, BrickBot has you covered.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

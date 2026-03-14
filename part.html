@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — Part Lookup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content area -->
+  <main class="part-page" id="part-page">
+    <!-- Populated by JS -->
+  </main>
+
+  <!-- Buy Links (hidden until part loads) -->
+  <section class="buy-links" id="buy-links" style="display:none;">
+    <a id="bricklink-btn" class="buy-btn buy-btn--blue" href="#" target="_blank" rel="noopener">
+      Find on BrickLink
+    </a>
+    <a id="amazon-btn" class="buy-btn buy-btn--green" href="#" target="_blank" rel="noopener">
+      Search Amazon
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var params = new URLSearchParams(window.location.search);
+      var partNum = params.get('part');
+      var page = document.getElementById('part-page');
+
+      if (!partNum) {
+        BrickBotUI.showError(page, 'No part number provided. Go back and search for one!');
+        return;
+      }
+
+      document.title = 'BrickBot — Part ' + partNum;
+      BrickBotUI.showLoading(page);
+
+      // Fetch part, colors, and sets in parallel
+      Promise.all([
+        BrickBotAPI.getPart(partNum),
+        BrickBotAPI.getColors(partNum),
+        BrickBotAPI.getSets(partNum)
+      ]).then(function (results) {
+        var part = results[0];
+        var colorsData = results[1];
+        var setsData = results[2];
+
+        var colors = colorsData.results || [];
+        var sets = setsData.results || [];
+        var totalSets = setsData.count || sets.length;
+
+        // Save to recent lookups
+        BrickBotUI.addRecentLookup(partNum, part.name, part.part_img_url);
+
+        // Build the page
+        var html = '';
+
+        // --- Part Header ---
+        html += '<section class="part-header">';
+        html += '  <div class="part-header-inner">';
+        html += '    <div class="part-image-wrap">';
+        if (part.part_img_url) {
+          html += '    <img class="part-image" src="' + part.part_img_url + '" alt="' + BrickBotUI.escapeHtml(part.name) + '">';
+        } else {
+          html += '    <div class="part-image-placeholder">No image available</div>';
+        }
+        html += '    </div>';
+        html += '    <div class="part-info">';
+        html += '      <h1 class="part-name">' + BrickBotUI.escapeHtml(part.name) + '</h1>';
+        html += '      <span class="part-number">#' + BrickBotUI.escapeHtml(part.part_num) + '</span>';
+        html += '      <div class="part-stats">';
+        html += '        <span class="stat-pill">' + colors.length + ' colors</span>';
+        html += '        <span class="stat-pill">' + totalSets.toLocaleString() + ' sets</span>';
+        html += '      </div>';
+        html += '    </div>';
+        html += '  </div>';
+        html += '</section>';
+
+        // --- Color Swatches ---
+        if (colors.length > 0) {
+          html += '<section class="colors-section">';
+          html += '  <h2 class="section-title">Available in ' + colors.length + ' colors</h2>';
+          html += '  <div class="color-swatches">';
+          colors.forEach(function (c) {
+            var hex = '#' + (c.color_rgb || 'CCCCCC');
+            var name = c.color_name || 'Unknown';
+            var border = c.color_rgb === 'FFFFFF' ? '1px solid #ddd' : '1px solid transparent';
+            html += '<div class="color-swatch" title="' + BrickBotUI.escapeHtml(name) + '" style="background:' + hex + ';border:' + border + ';">';
+            html += '  <span class="color-tooltip">' + BrickBotUI.escapeHtml(name) + '</span>';
+            html += '</div>';
+          });
+          html += '  </div>';
+          html += '</section>';
+        }
+
+        // --- Sets Grid ---
+        if (sets.length > 0) {
+          html += '<section class="sets-section">';
+          html += '  <h2 class="section-title">Found in ' + totalSets.toLocaleString() + ' sets</h2>';
+          html += '  <div class="sets-grid" id="sets-grid">';
+          sets.forEach(function (s) {
+            var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
+            html += '<a class="set-card" href="' + setUrl + '" target="_blank" rel="noopener">';
+            if (s.set_img_url) {
+              html += '  <img class="set-card-img" src="' + s.set_img_url + '" alt="' + BrickBotUI.escapeHtml(s.name) + '">';
+            } else {
+              html += '  <div class="set-card-img-placeholder">No image</div>';
+            }
+            html += '  <div class="set-card-name">' + BrickBotUI.escapeHtml(s.name) + '</div>';
+            html += '  <div class="set-card-meta">' + (s.year || '') + ' &middot; ' + (s.num_parts || '?') + ' pcs</div>';
+            html += '</a>';
+          });
+          html += '  </div>';
+
+          if (totalSets > 12) {
+            html += '<div class="sets-expand-wrap">';
+            html += '  <button class="sets-expand-btn" id="show-all-sets">Show all ' + totalSets.toLocaleString() + ' sets</button>';
+            html += '</div>';
+          }
+          html += '</section>';
+        }
+
+        // --- BrickBot Ideas placeholder (Phase 3+) ---
+        html += '<section class="ideas-section">';
+        html += '  <div class="ideas-card">';
+        html += '    <div class="ideas-header">';
+        html += '      <span class="ideas-icon">🤖</span>';
+        html += '      <h2 class="ideas-title">BrickBot says...</h2>';
+        html += '    </div>';
+        html += '    <p class="ideas-coming-soon">AI build ideas coming soon! BrickBot will suggest creative builds using this piece.</p>';
+        html += '  </div>';
+        html += '</section>';
+
+        page.innerHTML = html;
+
+        // --- Buy links ---
+        var buySection = document.getElementById('buy-links');
+        var blBtn = document.getElementById('bricklink-btn');
+        var azBtn = document.getElementById('amazon-btn');
+        blBtn.href = 'https://www.bricklink.com/v2/catalog/catalogitem.page?P=' + encodeURIComponent(part.part_num);
+        azBtn.href = 'https://www.amazon.com/s?k=LEGO+' + encodeURIComponent(part.name);
+        buySection.style.display = 'flex';
+
+        // --- Show all sets handler ---
+        var showAllBtn = document.getElementById('show-all-sets');
+        if (showAllBtn) {
+          showAllBtn.addEventListener('click', function () {
+            showAllBtn.textContent = 'Loading...';
+            showAllBtn.disabled = true;
+            // Fetch all sets
+            BrickBotAPI.getSets(partNum, totalSets).then(function (allData) {
+              var allSets = allData.results || [];
+              var grid = document.getElementById('sets-grid');
+              grid.innerHTML = '';
+              allSets.forEach(function (s) {
+                var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
+                var card = document.createElement('a');
+                card.className = 'set-card';
+                card.href = setUrl;
+                card.target = '_blank';
+                card.rel = 'noopener';
+                var inner = '';
+                if (s.set_img_url) {
+                  inner += '<img class="set-card-img" src="' + s.set_img_url + '" alt="' + BrickBotUI.escapeHtml(s.name) + '">';
+                } else {
+                  inner += '<div class="set-card-img-placeholder">No image</div>';
+                }
+                inner += '<div class="set-card-name">' + BrickBotUI.escapeHtml(s.name) + '</div>';
+                inner += '<div class="set-card-meta">' + (s.year || '') + ' &middot; ' + (s.num_parts || '?') + ' pcs</div>';
+                card.innerHTML = inner;
+                grid.appendChild(card);
+              });
+              showAllBtn.parentElement.remove();
+            }).catch(function () {
+              showAllBtn.textContent = 'Failed to load — try again';
+              showAllBtn.disabled = false;
+            });
+          });
+        }
+
+      }).catch(function (err) {
+        BrickBotUI.showError(page, "BrickBot couldn\u2019t find that part number. Double-check the number on the bottom of the piece.");
+      });
+    })();
+  </script>
+</body>
+</html>
