@@ -42,21 +42,45 @@
     <p class="bench-save-note">Your bench is saved on this device.</p>
   </section>
 
-  <!-- Quick Add Bar -->
-  <section class="bench-quick-add">
-    <label class="bench-quick-label">QUICK ADD — TYPE PART NUMBERS</label>
-    <div class="bench-quick-bar">
-      <input
-        type="text"
-        id="bench-quick-input"
-        class="bench-quick-input"
-        placeholder="3001, 3005, 3622, 3010, 3040..."
-        autocomplete="off"
-      >
-      <button class="bench-quick-btn" id="bench-quick-btn">+ Add All</button>
+  <!-- Smart Search -->
+  <section class="bench-smart-search">
+    <div class="smart-search-section">
+      <div class="smart-search-label">ADD PIECES TO YOUR BENCH</div>
+
+      <div class="smart-search-bar">
+        <input
+          type="text"
+          id="piece-search-input"
+          class="smart-search-input"
+          placeholder="Describe a piece, enter a part number, or upload a photo..."
+          autocomplete="off"
+        >
+        <button class="smart-search-photo-btn" id="photo-search-btn" title="Identify a piece from a photo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="smart-search-hints">
+        Try: <span class="hint-chip" data-query="2x4 brick">2x4 brick</span>
+        <span class="hint-chip" data-query="slope">slope</span>
+        <span class="hint-chip" data-query="round plate">round plate</span>
+        <span class="hint-chip" data-query="flat tile">flat tile</span>
+        <span class="hint-chip" data-query="technic pin">technic pin</span>
+      </div>
+
+      <div class="search-results-area" id="search-results-area" style="display:none;">
+        <div class="search-results-label" id="search-results-label"></div>
+        <div class="search-results-grid" id="search-results-grid"></div>
+        <div class="search-no-results" id="search-no-results" style="display:none;">
+          BrickBot couldn't find that piece. Try different words, or use the camera to take a photo.
+        </div>
+      </div>
+
+      <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none;">
     </div>
-    <p class="bench-quick-help">Separate part numbers with commas. You can add up to 30 pieces.</p>
-    <div class="bench-quick-errors" id="bench-quick-errors"></div>
   </section>
 
   <!-- Piece Grid -->

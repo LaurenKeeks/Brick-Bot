@@ -19,9 +19,13 @@
   var grid = document.getElementById('bench-grid');
   var countPill = document.getElementById('bench-count-pill');
   var clearBtn = document.getElementById('bench-clear-btn');
-  var quickInput = document.getElementById('bench-quick-input');
-  var quickBtn = document.getElementById('bench-quick-btn');
-  var quickErrors = document.getElementById('bench-quick-errors');
+  var searchInput = document.getElementById('piece-search-input');
+  var searchResultsArea = document.getElementById('search-results-area');
+  var searchResultsGrid = document.getElementById('search-results-grid');
+  var searchResultsLabel = document.getElementById('search-results-label');
+  var searchNoResults = document.getElementById('search-no-results');
+  var photoBtn = document.getElementById('photo-search-btn');
+  var photoFileInput = document.getElementById('photo-file-input');
   var ghostCard = document.getElementById('bench-ghost-card');
   var actionsSection = document.getElementById('bench-actions');
   var resultsSection = document.getElementById('bench-results');
@@ -162,55 +166,174 @@
     renderPieceGrid();
   }
 
-  // --- Quick Add ---
-  async function addPiecesFromInput() {
-    var raw = quickInput.value.trim();
-    if (!raw) return;
+  // --- Smart Search ---
+  var searchDebounceTimer = null;
 
-    var partNums = raw.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-    if (partNums.length === 0) return;
+  function handleSearchInput() {
+    clearTimeout(searchDebounceTimer);
+    var query = searchInput.value.trim();
 
-    // Check max
-    if (benchState.pieces.length + partNums.length > MAX_PIECES) {
-      showToast('That would exceed ' + MAX_PIECES + ' pieces. Remove some first.');
+    if (!query) {
+      searchResultsArea.style.display = 'none';
       return;
     }
 
-    quickBtn.disabled = true;
-    quickBtn.textContent = 'Adding...';
-    quickErrors.innerHTML = '';
+    searchDebounceTimer = setTimeout(function () {
+      // Pure number → direct part lookup
+      if (/^\d+$/.test(query)) {
+        searchResultsGrid.innerHTML = '<div class="search-loading">BrickBot is searching...</div>';
+        searchNoResults.style.display = 'none';
+        searchResultsLabel.textContent = 'Looking up part #' + query + '...';
+        searchResultsArea.style.display = 'block';
 
-    var added = 0;
-    var errors = [];
-
-    for (var i = 0; i < partNums.length; i++) {
-      var num = partNums[i];
-      try {
-        var data = await BrickBotAPI.getPart(num);
-        if (addPiece(data)) {
-          added++;
-        }
-      } catch (e) {
-        errors.push(num);
+        BrickBotAPI.getPart(query).then(function (part) {
+          renderSearchResults([part], query);
+        }).catch(function () {
+          searchResultsGrid.innerHTML = '';
+          searchNoResults.style.display = 'block';
+          searchResultsLabel.textContent = 'No results for "' + query + '"';
+        });
+      } else {
+        searchParts(query);
       }
-    }
-
-    // Show errors
-    if (errors.length > 0) {
-      quickErrors.innerHTML = errors.map(function (num) {
-        return '<span class="bench-error-pill">' + BrickBotUI.escapeHtml(num) + ' \u2014 not found</span>';
-      }).join('');
-    }
-
-    // Show toast
-    if (added > 0) {
-      showToast('Added ' + added + ' piece' + (added === 1 ? '' : 's') + ' to your bench!');
-      quickInput.value = '';
-    }
-
-    quickBtn.disabled = false;
-    quickBtn.textContent = '+ Add All';
+    }, 400);
   }
+
+  function searchParts(query) {
+    searchResultsGrid.innerHTML = '<div class="search-loading">BrickBot is searching...</div>';
+    searchNoResults.style.display = 'none';
+    searchResultsLabel.textContent = 'Searching for "' + query + '"...';
+    searchResultsArea.style.display = 'block';
+
+    fetch('/api/search-parts?q=' + encodeURIComponent(query))
+      .then(function (res) {
+        if (!res.ok) throw new Error('Search failed');
+        return res.json();
+      })
+      .then(function (data) {
+        var results = data.results || [];
+        renderSearchResults(results, query);
+      })
+      .catch(function () {
+        searchResultsGrid.innerHTML = '';
+        searchNoResults.style.display = 'block';
+        searchResultsLabel.textContent = 'Search failed — try again';
+      });
+  }
+
+  function renderSearchResults(results, query) {
+    searchResultsGrid.innerHTML = '';
+
+    if (results.length === 0) {
+      searchNoResults.style.display = 'block';
+      searchResultsLabel.textContent = 'No results for "' + query + '"';
+      return;
+    }
+
+    searchNoResults.style.display = 'none';
+    searchResultsLabel.textContent = 'Showing results for "' + query + '" \u2014 tap a piece to add it';
+
+    results.forEach(function (part) {
+      var card = document.createElement('div');
+      card.className = 'search-result-card';
+
+      var alreadyOnBench = benchState.pieces.some(function (p) { return p.part_num === part.part_num; });
+
+      card.innerHTML =
+        '<img src="' + (part.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(part.name) + '" class="search-result-img" onerror="this.style.background=\'#eee\'">' +
+        '<div class="search-result-name">' + BrickBotUI.escapeHtml(part.name) + '</div>' +
+        '<div class="search-result-num">#' + BrickBotUI.escapeHtml(part.part_num) + '</div>' +
+        '<button class="btn-add-result' + (alreadyOnBench ? ' added' : '') + '" ' +
+          (alreadyOnBench ? 'disabled' : '') + '>' +
+          (alreadyOnBench ? '\u2713 Added' : '+ Add') +
+        '</button>';
+
+      if (!alreadyOnBench) {
+        card.querySelector('.btn-add-result').addEventListener('click', function () {
+          addFromSearch(part, this);
+        });
+      }
+
+      searchResultsGrid.appendChild(card);
+    });
+  }
+
+  function addFromSearch(partData, btnEl) {
+    var isDuplicate = benchState.pieces.some(function (p) { return p.part_num === partData.part_num; });
+    if (isDuplicate) {
+      showToast('That piece is already on your bench!');
+      return;
+    }
+
+    if (addPiece(partData)) {
+      btnEl.textContent = '\u2713 Added';
+      btnEl.classList.add('added');
+      btnEl.disabled = true;
+      showToast('Added ' + partData.name + ' to your bench!');
+    }
+  }
+
+  // --- Photo search ---
+  function handlePhotoSearchBtn() {
+    photoFileInput.click();
+  }
+
+  photoFileInput.addEventListener('change', function () {
+    var file = photoFileInput.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      var dataUrl = reader.result;
+      var base64 = dataUrl.split(',')[1];
+      var mediaType = file.type || 'image/jpeg';
+
+      searchResultsGrid.innerHTML = '<div class="search-loading">BrickBot is looking at your photo...</div>';
+      searchNoResults.style.display = 'none';
+      searchResultsLabel.textContent = 'Identifying piece from photo...';
+      searchResultsArea.style.display = 'block';
+      searchInput.value = '';
+
+      fetch('/api/identify-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
+      }).then(function (res) {
+        if (!res.ok) throw new Error('Photo ID failed');
+        return res.json();
+      }).then(function (data) {
+        if (data.error) {
+          searchResultsGrid.innerHTML = '';
+          searchNoResults.style.display = 'block';
+          searchResultsLabel.textContent = 'Could not identify piece';
+          return;
+        }
+
+        // Fetch the identified part(s) from Rebrickable
+        var partNums = [data.partNumber];
+        if (data.alternatives) {
+          data.alternatives.forEach(function (alt) {
+            if (alt.partNumber) partNums.push(alt.partNumber);
+          });
+        }
+
+        Promise.all(partNums.map(function (num) {
+          return BrickBotAPI.getPart(num).catch(function () { return null; });
+        })).then(function (parts) {
+          var validParts = parts.filter(Boolean);
+          renderSearchResults(validParts, 'photo');
+          searchResultsLabel.textContent = 'BrickBot identified ' + validParts.length + ' possible match' + (validParts.length === 1 ? '' : 'es') + ' \u2014 tap to add';
+        });
+      }).catch(function () {
+        searchResultsGrid.innerHTML = '';
+        searchNoResults.style.display = 'block';
+        searchResultsLabel.textContent = 'Photo identification failed — try again';
+      });
+    };
+    reader.readAsDataURL(file);
+    // Reset so same file can be re-selected
+    photoFileInput.value = '';
+  });
 
   // --- Clear bench ---
   function clearBench() {
@@ -466,18 +589,42 @@
   });
 
   // --- Event listeners ---
-  quickBtn.addEventListener('click', addPiecesFromInput);
-  quickInput.addEventListener('keydown', function (e) {
+  searchInput.addEventListener('input', handleSearchInput);
+  searchInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      addPiecesFromInput();
+      clearTimeout(searchDebounceTimer);
+      var query = searchInput.value.trim();
+      if (/^\d+$/.test(query)) {
+        BrickBotAPI.getPart(query).then(function (part) {
+          renderSearchResults([part], query);
+        }).catch(function () {
+          searchResultsGrid.innerHTML = '';
+          searchNoResults.style.display = 'block';
+          searchResultsLabel.textContent = 'No results for "' + query + '"';
+          searchResultsArea.style.display = 'block';
+        });
+      } else if (query) {
+        searchParts(query);
+      }
     }
+  });
+
+  photoBtn.addEventListener('click', handlePhotoSearchBtn);
+
+  // Hint chips
+  document.querySelectorAll('.hint-chip[data-query]').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var query = chip.getAttribute('data-query');
+      searchInput.value = query;
+      searchParts(query);
+    });
   });
 
   clearBtn.addEventListener('click', clearBench);
 
   ghostCard.addEventListener('click', function () {
-    quickInput.focus();
+    searchInput.focus();
   });
 
   // --- Init ---

@@ -43,7 +43,7 @@
             type="text"
             id="part-search"
             class="search-input"
-            placeholder="Enter a part number (e.g. 3001)"
+            placeholder="Describe a piece or enter a part number..."
             autocomplete="off"
           >
           <button type="submit" class="search-btn">Search</button>
@@ -60,6 +60,15 @@
       <button class="chip" data-part="3005">3005 — 1x1 Brick</button>
       <button class="chip" data-part="3622">3622 — 1x3 Brick</button>
       <button class="chip" data-part="3040">3040 — Roof Tile</button>
+    </div>
+
+    <!-- Hint Chips -->
+    <div class="homepage-hints">
+      Try:
+      <span class="hint-chip" onclick="document.getElementById('part-search').value='2x4 brick'; document.getElementById('part-search').focus();">2x4 brick</span>
+      <span class="hint-chip" onclick="document.getElementById('part-search').value='slope piece'; document.getElementById('part-search').focus();">slope piece</span>
+      <span class="hint-chip" onclick="document.getElementById('part-search').value='round flat plate'; document.getElementById('part-search').focus();">round flat plate</span>
+      <span class="hint-chip" onclick="document.getElementById('part-search').value='technic pin'; document.getElementById('part-search').focus();">technic pin</span>
     </div>
   </section>
 
