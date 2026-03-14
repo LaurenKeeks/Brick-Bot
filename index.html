@@ -71,14 +71,6 @@
       <span class="hint-chip" data-query="technic pin">technic pin</span>
     </div>
 
-    <!-- Search Results (hidden until text search) -->
-    <div class="homepage-search-results" id="homepage-search-results" style="display:none;">
-      <div class="homepage-search-label" id="homepage-search-label"></div>
-      <div class="homepage-search-grid" id="homepage-search-grid"></div>
-      <div class="homepage-search-empty" id="homepage-search-empty" style="display:none;">
-        BrickBot couldn't find that piece. Try different words or enter a part number.
-      </div>
-    </div>
   </section>
 
   <!-- How It Works -->
@@ -147,88 +139,31 @@
         }
       } catch (e) {}
 
-      // --- Override search form: numbers → part.html, text → inline results ---
+      // --- Override search form: numbers → part.html, text → search.html ---
       var form = document.getElementById('search-form');
       var input = document.getElementById('part-search');
-      var resultsArea = document.getElementById('homepage-search-results');
-      var resultsGrid = document.getElementById('homepage-search-grid');
-      var resultsLabel = document.getElementById('homepage-search-label');
-      var resultsEmpty = document.getElementById('homepage-search-empty');
 
-      // Remove the old submit listener from app.js by replacing the form
       var newForm = form.cloneNode(true);
       form.parentNode.replaceChild(newForm, form);
       input = document.getElementById('part-search');
-
-      function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-
-      function doHomepageSearch(query) {
-        resultsGrid.innerHTML = '<div class="homepage-search-loading">BrickBot is searching...</div>';
-        resultsEmpty.style.display = 'none';
-        resultsLabel.textContent = 'Searching for "' + query + '"...';
-        resultsArea.style.display = 'block';
-
-        fetch('/api/search-parts?q=' + encodeURIComponent(query))
-          .then(function (res) {
-            if (!res.ok) throw new Error('Search failed');
-            return res.json();
-          })
-          .then(function (data) {
-            var results = data.results || [];
-            resultsGrid.innerHTML = '';
-
-            if (results.length === 0) {
-              resultsEmpty.style.display = 'block';
-              resultsLabel.textContent = 'No results for "' + query + '"';
-              return;
-            }
-
-            resultsEmpty.style.display = 'none';
-            resultsLabel.textContent = results.length + ' result' + (results.length === 1 ? '' : 's') + ' for "' + query + '"';
-
-            results.forEach(function (part) {
-              var card = document.createElement('a');
-              card.className = 'homepage-result-card';
-              card.href = 'part.html?part=' + encodeURIComponent(part.part_num);
-              card.innerHTML =
-                '<img src="' + (part.part_img_url || '') + '" alt="' + escapeHtml(part.name) + '" class="homepage-result-img" onerror="this.style.background=\'#eee\'">' +
-                '<div class="homepage-result-name">' + escapeHtml(part.name) + '</div>' +
-                '<div class="homepage-result-num">#' + escapeHtml(part.part_num) + '</div>';
-              resultsGrid.appendChild(card);
-            });
-          })
-          .catch(function () {
-            resultsGrid.innerHTML = '';
-            resultsEmpty.style.display = 'block';
-            resultsLabel.textContent = 'Search failed — try again';
-          });
-      }
 
       newForm.addEventListener('submit', function (e) {
         e.preventDefault();
         var query = input.value.trim();
         if (!query) return;
 
-        // Pure number → go to part page
         if (/^\d+[a-z]?$/.test(query)) {
           window.location.href = 'part.html?part=' + encodeURIComponent(query);
-          return;
+        } else {
+          window.location.href = 'search.html?q=' + encodeURIComponent(query);
         }
-
-        // Text → inline search
-        doHomepageSearch(query);
       });
 
-      // Hint chips trigger search
+      // Hint chips redirect to search page
       document.querySelectorAll('#homepage-hints .hint-chip[data-query]').forEach(function (chip) {
         chip.addEventListener('click', function () {
           var query = chip.getAttribute('data-query');
-          input.value = query;
-          doHomepageSearch(query);
+          window.location.href = 'search.html?q=' + encodeURIComponent(query);
         });
       });
     })();

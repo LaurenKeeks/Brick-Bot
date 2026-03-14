@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — Search Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/search.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link-bench">My Bench<span class="bench-badge" id="bench-badge"></span></a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Search hero -->
+  <section class="search-hero">
+    <div class="search-hero-inner">
+      <form class="search-hero-form" id="search-hero-form">
+        <div class="search-bar">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Describe a piece or enter a part number..." autocomplete="off">
+          <button type="submit" class="search-btn">Search</button>
+        </div>
+      </form>
+      <h1 class="search-heading" id="search-heading"></h1>
+      <p class="search-count" id="search-count"></p>
+    </div>
+  </section>
+
+  <!-- Category filters -->
+  <section class="search-filters">
+    <div class="search-filters-inner" id="search-filters">
+      <button class="search-cat-btn active" data-cat="">All</button>
+      <button class="search-cat-btn" data-cat="11">Bricks</button>
+      <button class="search-cat-btn" data-cat="14">Plates</button>
+      <button class="search-cat-btn" data-cat="27">Minifigure</button>
+      <button class="search-cat-btn" data-cat="45">Technic</button>
+      <button class="search-cat-btn" data-cat="31">Slopes</button>
+    </div>
+  </section>
+
+  <!-- Results grid -->
+  <section class="search-results-section">
+    <div class="search-results-wrap" id="search-results-wrap">
+      <div class="search-grid" id="search-grid"></div>
+      <div class="search-empty" id="search-empty" style="display:none;">
+        BrickBot couldn't find that piece. Try different words or enter a part number.
+      </div>
+      <div class="search-show-more-wrap" id="search-show-more-wrap" style="display:none;">
+        <button class="search-show-more-btn" id="search-show-more-btn">Show more &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/ui.js"></script>
+  <script src="js/search.js"></script>
+</body>
+</html>
