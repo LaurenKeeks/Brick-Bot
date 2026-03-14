@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     const { message, conversationHistory } = JSON.parse(event.body);
 
     const client = new Anthropic({ apiKey });
-    const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250514';
+    const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5';
 
     const systemPrompt = `You are BrickBot, an enthusiastic LEGO-obsessed AI assistant for kids and fans of all ages.
 You give creative, encouraging, specific build ideas. You speak in a friendly, exciting tone.

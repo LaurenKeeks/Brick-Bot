@@ -7,7 +7,7 @@ exports.handler = async (event) => {
 
   // --- Diagnostic logging ---
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
-  const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250514';
+  const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5';
 
   console.log('[get-ideas] ENV CHECK:', JSON.stringify({
     ANTHROPIC_API_KEY_set: !!process.env.ANTHROPIC_API_KEY,
