@@ -41,24 +41,32 @@ Each idea should use at least 2 of the pieces listed.
 Target age: ${ageGroup}
 Preferred topics: ${topicsStr}
 
-Format each idea EXACTLY like this (including the labels):
+Format each idea EXACTLY like this — include every label, do not skip any:
 
 IDEA [number]: [catchy name]
 DIFFICULTY: [Beginner / Intermediate / Advanced]
-DESCRIPTION: [2-3 sentences, enthusiastic, specific, mentions the actual piece names]
-PIECES USED: [comma-separated list of part numbers from the bench that this idea uses]
+DESCRIPTION: [2 sentences max, enthusiastic, mentions the actual piece names]
+PIECES USED: [comma-separated part numbers from the bench that this idea uses]
+STEPS:
+- [Step 1 — short, specific, fun. Mention the actual piece name.]
+- [Step 2]
+- [Step 3]
+- [Step 4]
+- [Step 5 — final step, describe what the finished build looks like]
 
 Rules:
-- Only use pieces from the list above. Do not suggest any pieces they don't have.
-- Be creative, specific, and encouraging. Make kids excited to start building.
-- Do not suggest buying more pieces.
-- Each idea should use a DIFFERENT combination of pieces so the ideas feel varied.`;
+- Write exactly 5 steps per idea. No more, no less.
+- Steps should be loose guidance, not precise engineering. Think "grab your 2x4 brick and lay it flat as your base" not "place element #3001 at coordinates X,Y".
+- Only use pieces from the list. Never suggest pieces they don't have.
+- Each idea should use a DIFFERENT combination of pieces.
+- Make kids excited. High energy. Like a LEGO-obsessed best friend is talking.
+- Do not suggest buying more pieces.`;
 
     console.log('[get-bench-ideas] Calling Anthropic API, model:', model, 'pieces:', pieces.length);
 
     const response = await client.messages.create({
       model,
-      max_tokens: 1200,
+      max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     });
@@ -74,6 +82,20 @@ Rules:
       const diffMatch = block.match(/DIFFICULTY:\s*(.+?)(?:\n|$)/i);
       const descMatch = block.match(/DESCRIPTION:\s*([\s\S]+?)(?=PIECES USED:|$)/i);
       const piecesMatch = block.match(/PIECES USED:\s*(.+?)(?:\n|$)/i);
+
+      // Extract steps: find STEPS: line, collect all "- " lines after it
+      const steps = [];
+      const stepsSection = block.match(/STEPS:\s*\n([\s\S]+?)(?=IDEA\s+\d+:|$)/i);
+      if (stepsSection) {
+        const stepLines = stepsSection[1].split('\n');
+        for (const line of stepLines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('- ')) {
+            steps.push(trimmed.substring(2).trim());
+          }
+        }
+      }
+
       if (nameMatch && diffMatch && descMatch) {
         const piecesUsed = piecesMatch
           ? piecesMatch[1].trim().split(/[,\s]+/).map(s => s.replace(/^#/, '').trim()).filter(Boolean)
@@ -82,7 +104,8 @@ Rules:
           name: nameMatch[1].trim(),
           difficulty: diffMatch[1].trim(),
           description: descMatch[1].trim(),
-          piecesUsed
+          piecesUsed,
+          steps
         });
       }
     }

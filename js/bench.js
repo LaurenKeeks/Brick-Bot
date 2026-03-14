@@ -265,20 +265,58 @@
     ideas.forEach(function (idea, i) {
       var badgeColor = BrickBotUI.difficultyColor(idea.difficulty);
       html += '<div class="bench-idea-card">';
+
+      // 1. Header + difficulty badge
       html += '  <div class="bench-idea-header">';
       html += '    <span class="bench-idea-label">BRICKBOT BUILD IDEA #' + (i + 1) + '</span>';
       html += '    <span class="bench-idea-difficulty" style="background:' + badgeColor + ';">' + BrickBotUI.escapeHtml(idea.difficulty) + '</span>';
       html += '  </div>';
+
+      // 2. Name
       html += '  <h3 class="bench-idea-name">' + BrickBotUI.escapeHtml(idea.name) + '</h3>';
+
+      // 3. Description
       html += '  <p class="bench-idea-desc">' + BrickBotUI.escapeHtml(idea.description) + '</p>';
+
+      // 4. Piece image strip
+      if (idea.piecesUsed && idea.piecesUsed.length > 0) {
+        html += '  <div class="idea-pieces-strip">';
+        html += '    <span class="idea-pieces-label">PIECES YOU\'LL USE</span>';
+        html += '    <div class="idea-pieces-chips">';
+        idea.piecesUsed.forEach(function (num) {
+          var piece = benchState.pieces.find(function (p) { return p.part_num === num; });
+          if (piece) {
+            html += '<div class="idea-piece-chip">';
+            html += '  <img src="' + (piece.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(piece.name) + '" class="idea-piece-img" onerror="this.style.background=\'#eee\'">';
+            html += '  <span class="idea-piece-label">' + BrickBotUI.escapeHtml(piece.name) + '</span>';
+            html += '</div>';
+          }
+        });
+        html += '    </div>';
+        html += '  </div>';
+      }
+
+      // 5. Steps list
+      if (idea.steps && idea.steps.length > 0) {
+        html += '  <div class="idea-steps">';
+        html += '    <span class="idea-steps-label">HOW TO BUILD IT</span>';
+        html += '    <ol class="idea-steps-list">';
+        idea.steps.forEach(function (step) {
+          html += '      <li>' + BrickBotUI.escapeHtml(step) + '</li>';
+        });
+        html += '    </ol>';
+        html += '  </div>';
+      }
+
+      // 6. Part number tags
       if (idea.piecesUsed && idea.piecesUsed.length > 0) {
         html += '  <div class="bench-idea-pieces">';
-        html += '    <span class="bench-idea-label" style="margin-right:4px;">Pieces used:</span>';
         idea.piecesUsed.forEach(function (num) {
           html += '<span class="bench-idea-piece-tag">#' + BrickBotUI.escapeHtml(num) + '</span>';
         });
         html += '  </div>';
       }
+
       html += '</div>';
     });
     html += '</div>';
