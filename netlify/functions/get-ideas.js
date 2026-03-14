@@ -3,6 +3,16 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
+  // Diagnostic: check if API key is present
+  const apiKey = process.env.CLAUDE_API_KEY;
+  if (!apiKey) {
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'CLAUDE_API_KEY env var is not set', envKeys: Object.keys(process.env).filter(k => k.includes('CLAUDE') || k.includes('ANTHROPIC') || k.includes('API')) })
+    };
+  }
+
   try {
     const { partName, partNumber, category, ageGroup, topics, conversationHistory } = JSON.parse(event.body);
 
@@ -33,8 +43,8 @@ Make kids excited to start building. Be specific about HOW the part is used.`;
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'x-api-key': apiKey,
+        'anthropic-version': '2024-10-22',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
