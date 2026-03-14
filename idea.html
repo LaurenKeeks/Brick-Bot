@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — Build Idea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/idea.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link-bench">My Bench<span class="bench-badge" id="bench-badge"></span></a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Back link + Hero -->
+  <div style="background:var(--dark-navy);padding:0 24px;">
+    <div class="idea-back"><a href="bench.html">&larr; Back to My Bench</a></div>
+  </div>
+  <section class="idea-hero">
+    <div class="idea-hero-inner" id="idea-hero-inner">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Pieces section -->
+  <section class="idea-pieces-section">
+    <h2>PIECES YOU'LL NEED</h2>
+    <div class="idea-pieces-grid" id="idea-pieces-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Steps section -->
+  <section class="idea-steps-section" id="idea-steps-section">
+    <h2>HOW TO BUILD IT</h2>
+    <div class="idea-steps-list" id="idea-steps-list">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- BrickBot says -->
+  <section class="idea-brickbot-section">
+    <div class="idea-brickbot-card">
+      <div class="idea-brickbot-header">
+        <span>🤖</span>
+        <h2>BrickBot says...</h2>
+      </div>
+      <p class="idea-brickbot-desc" id="idea-description">Loading...</p>
+      <form class="idea-ask-form" id="idea-ask-form">
+        <input type="text" class="idea-ask-input" id="idea-ask-input" placeholder="Ask BrickBot a question about this build..." autocomplete="off">
+        <button type="submit" class="idea-ask-send">Send</button>
+      </form>
+      <div class="chat-thread" id="idea-chat-thread"></div>
+    </div>
+  </section>
+
+  <!-- Share section -->
+  <section class="idea-share-section">
+    <div class="idea-share-inner">
+      <h2>Share this build idea</h2>
+      <div class="share-row">
+        <button class="btn-copy-link" id="btn-copy-link">Copy link</button>
+        <button class="btn-add-to-bench" id="btn-add-pieces">Add pieces to bench &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Regenerate -->
+  <section class="idea-regen-section">
+    <div class="idea-regen-inner">
+      <h2>Want a different idea with these pieces?</h2>
+      <button class="btn-regenerate" id="btn-regenerate">Regenerate &rarr;</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/idea.js"></script>
+</body>
+</html>

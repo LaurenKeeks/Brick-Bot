@@ -1,0 +1,439 @@
+/* ============================================
+   Idea Detail Page
+   ============================================ */
+
+/* Back link */
+.idea-back {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 0 0;
+}
+
+.idea-back a {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.idea-back a:hover {
+  color: var(--lego-yellow);
+}
+
+/* Hero */
+.idea-hero {
+  background: var(--dark-navy);
+  padding: 24px 24px 40px;
+}
+
+.idea-hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.idea-hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+
+.idea-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.idea-hero-sub {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+/* Difficulty badge in hero */
+.idea-diff-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+  padding: 4px 14px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Pieces section */
+.idea-pieces-section {
+  background: var(--light-gray);
+  padding: 40px 24px;
+}
+
+.idea-pieces-section h2 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--muted-gray);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.idea-pieces-grid {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.idea-piece-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.idea-piece-card img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.idea-piece-card .piece-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 4px;
+}
+
+.idea-piece-card .piece-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted-gray);
+  margin-bottom: 8px;
+}
+
+.idea-piece-card a {
+  font-size: 11px;
+  color: var(--lego-blue);
+  text-decoration: none;
+}
+
+.idea-piece-card a:hover {
+  text-decoration: underline;
+}
+
+/* Steps section */
+.idea-steps-section {
+  background: var(--white);
+  padding: 40px 24px;
+}
+
+.idea-steps-section h2 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--muted-gray);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.idea-steps-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.step-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: var(--lego-yellow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+.step-text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #333;
+  padding-top: 4px;
+}
+
+/* BrickBot says card */
+.idea-brickbot-section {
+  background: var(--light-gray);
+  padding: 40px 24px;
+}
+
+.idea-brickbot-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--white);
+  border-left: 4px solid var(--lego-yellow);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+}
+
+.idea-brickbot-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.idea-brickbot-header span {
+  font-size: 28px;
+}
+
+.idea-brickbot-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--dark-navy);
+}
+
+.idea-brickbot-desc {
+  font-size: 16px;
+  color: #444;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+/* Ask BrickBot input */
+.idea-ask-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.idea-ask-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--light-gray);
+  border-radius: 28px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.idea-ask-input:focus {
+  border-color: var(--lego-yellow);
+}
+
+.idea-ask-send {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 0 20px;
+  border-radius: 28px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.idea-ask-send:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+/* Chat thread */
+.chat-thread {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-bubble-user {
+  background: #f0f0f0;
+  border-radius: 16px 16px 4px 16px;
+  padding: 12px 16px;
+  font-size: 14px;
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+.chat-bubble-bot {
+  background: #fffbe6;
+  border: 1px solid #ffe066;
+  border-radius: 16px 16px 16px 4px;
+  padding: 12px 16px;
+  font-size: 14px;
+  align-self: flex-start;
+  max-width: 80%;
+}
+
+/* Share section */
+.idea-share-section {
+  background: var(--white);
+  padding: 40px 24px;
+}
+
+.idea-share-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.idea-share-inner h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dark-navy);
+  margin-bottom: 16px;
+}
+
+.share-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-copy-link {
+  flex: 1;
+  background: white;
+  border: 2px solid var(--lego-yellow);
+  color: #1a1a1a;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+}
+
+.btn-copy-link:hover {
+  background: var(--light-gray);
+}
+
+.btn-add-to-bench {
+  flex: 1;
+  background: var(--lego-yellow);
+  border: none;
+  color: #1a1a1a;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+}
+
+.btn-add-to-bench:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+/* Regenerate section */
+.idea-regen-section {
+  background: var(--light-gray);
+  padding: 32px 24px 48px;
+}
+
+.idea-regen-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.idea-regen-inner h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dark-navy);
+  margin-bottom: 16px;
+}
+
+.btn-regenerate {
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+}
+
+.btn-regenerate:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
+.btn-regenerate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Regenerate loading state */
+.regenerating {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+/* Loading state for idea page */
+.idea-loading {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--white);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  .idea-hero h1 {
+    font-size: 28px;
+  }
+
+  .idea-pieces-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .share-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .idea-pieces-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .idea-piece-card img {
+    width: 72px;
+    height: 72px;
+  }
+}

@@ -317,6 +317,14 @@
         html += '  </div>';
       }
 
+      // 7. View full build link
+      var ideaSlug = idea.name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+      var piecesParam = (idea.piecesUsed || []).join(',');
+      var topicsParam = encodeURIComponent(benchState.topics.join(','));
+      var ageParam = encodeURIComponent(benchState.ageGroup);
+      var ideaURL = '/idea.html?name=' + ideaSlug + '&pieces=' + piecesParam + '&age=' + ageParam + '&topics=' + topicsParam;
+      html += '<a href="' + ideaURL + '" class="btn-view-idea">View full build \u2192</a>';
+
       html += '</div>';
     });
     html += '</div>';

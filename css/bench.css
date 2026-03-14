@@ -618,6 +618,27 @@
   background: #eee;
 }
 
+/* View full build button */
+.btn-view-idea {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--lego-yellow);
+  color: var(--dark-navy);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  margin-top: 16px;
+  transition: background 0.2s;
+}
+
+.btn-view-idea:hover {
+  background: var(--lego-red);
+  color: var(--white);
+}
+
 /* Toast — base styles in styles.css, bench-specific override */
 
 /* ============================================
