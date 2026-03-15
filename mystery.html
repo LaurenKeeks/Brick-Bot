@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — Photo ID</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .mystery-hero {
+      background: var(--dark-navy);
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .mystery-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .mystery-subtitle {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      font-weight: 600;
+    }
+
+    .mystery-upload-section {
+      background: var(--light-gray);
+      padding: 48px 24px;
+    }
+    .mystery-upload-zone {
+      max-width: 500px;
+      margin: 0 auto;
+      border: 3px dashed #ccc;
+      border-radius: 20px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--white);
+    }
+    .mystery-upload-zone:hover,
+    .mystery-upload-zone.dragover {
+      border-color: var(--lego-yellow);
+      background: #fffbe6;
+    }
+    .mystery-upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .mystery-upload-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark-navy);
+      margin-bottom: 8px;
+    }
+    .mystery-upload-hint {
+      font-size: 13px;
+      color: var(--muted-gray);
+      line-height: 1.5;
+    }
+
+    .mystery-preview {
+      max-width: 500px;
+      margin: 20px auto 0;
+      text-align: center;
+      display: none;
+    }
+    .mystery-preview img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .mystery-results {
+      background: var(--white);
+      padding: 40px 24px;
+      display: none;
+    }
+    .mystery-results-inner {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .mystery-match-card {
+      background: var(--light-gray);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .mystery-match-img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      flex-shrink: 0;
+      background: var(--white);
+      border-radius: 12px;
+      padding: 8px;
+    }
+    .mystery-match-info {
+      flex: 1;
+    }
+    .mystery-match-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--dark-navy);
+      margin-bottom: 4px;
+    }
+    .mystery-match-num {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--muted-gray);
+      margin-bottom: 8px;
+    }
+    .mystery-confidence {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      padding: 3px 12px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+    .mystery-confidence--high { background: var(--lego-green); }
+    .mystery-confidence--medium { background: var(--lego-yellow); color: var(--dark-navy); }
+    .mystery-confidence--low { background: var(--lego-red); }
+
+    .mystery-alt-label {
+      font-size: 13px;
+      color: var(--muted-gray);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .mystery-alt-card {
+      background: var(--light-gray);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .mystery-alt-img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      background: var(--white);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .mystery-alt-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--dark-navy);
+    }
+    .mystery-alt-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted-gray);
+    }
+
+    .mystery-cta {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: var(--lego-yellow);
+      color: var(--dark-navy);
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .mystery-cta:hover {
+      background: var(--lego-red);
+      color: var(--white);
+    }
+
+    .mystery-error {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted-gray);
+      font-size: 15px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .mystery-loading {
+      text-align: center;
+      padding: 40px;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .mystery-match-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      .mystery-alt-card {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link-bench">My Bench<span class="bench-badge" id="bench-badge"></span></a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="mystery-hero">
+    <h1 class="mystery-title">Mystery Piece Identifier</h1>
+    <p class="mystery-subtitle">Snap a photo and BrickBot will tell you what it is.</p>
+  </section>
+
+  <!-- Upload Zone -->
+  <section class="mystery-upload-section">
+    <div class="mystery-upload-zone" id="upload-zone">
+      <div class="mystery-upload-icon">📷</div>
+      <div class="mystery-upload-text">Tap to upload or take a photo</div>
+      <div class="mystery-upload-hint">Lay the piece flat on a plain white or light surface for best results</div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;">
+
+    <div class="mystery-preview" id="mystery-preview">
+      <img id="preview-img" src="" alt="Your photo">
+    </div>
+
+    <div class="mystery-loading" id="mystery-loading">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">BrickBot is examining your piece...</p>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="mystery-results" id="mystery-results">
+    <div class="mystery-results-inner" id="mystery-results-inner">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Error -->
+  <div class="mystery-error" id="mystery-error">
+    BrickBot isn't sure about this one! Try a clearer photo with the piece on a plain white surface. Or check the part number stamped on the bottom of the piece and type it in the search bar.
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // Bench badge
+      try {
+        var pieces = JSON.parse(localStorage.getItem('brickbot_bench_pieces') || '[]');
+        var badge = document.getElementById('bench-badge');
+        if (badge && pieces.length > 0) {
+          badge.textContent = pieces.length;
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) {}
+
+      var uploadZone = document.getElementById('upload-zone');
+      var photoInput = document.getElementById('photo-input');
+      var previewSection = document.getElementById('mystery-preview');
+      var previewImg = document.getElementById('preview-img');
+      var loadingSection = document.getElementById('mystery-loading');
+      var resultsSection = document.getElementById('mystery-results');
+      var resultsInner = document.getElementById('mystery-results-inner');
+      var errorSection = document.getElementById('mystery-error');
+
+      // Click to upload
+      uploadZone.addEventListener('click', function () {
+        photoInput.click();
+      });
+
+      // Drag and drop
+      uploadZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
+      uploadZone.addEventListener('dragleave', function () {
+        uploadZone.classList.remove('dragover');
+      });
+      uploadZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        var file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          processFile(file);
+        }
+      });
+
+      photoInput.addEventListener('change', function () {
+        var file = photoInput.files[0];
+        if (file) processFile(file);
+        photoInput.value = '';
+      });
+
+      function processFile(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var dataUrl = reader.result;
+
+          // Show preview
+          previewImg.src = dataUrl;
+          previewSection.style.display = 'block';
+          loadingSection.style.display = 'block';
+          resultsSection.style.display = 'none';
+          errorSection.style.display = 'none';
+
+          // Strip prefix for base64
+          var base64 = dataUrl.split(',')[1];
+          var mediaType = file.type || 'image/jpeg';
+
+          // Call identify-photo
+          fetch('/api/identify-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
+          })
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed');
+            return res.json();
+          })
+          .then(function (data) {
+            loadingSection.style.display = 'none';
+
+            if (data.error || !data.partNumber) {
+              errorSection.style.display = 'block';
+              return;
+            }
+
+            showResults(data);
+          })
+          .catch(function () {
+            loadingSection.style.display = 'none';
+            errorSection.style.display = 'block';
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function confidenceClass(c) {
+        var l = (c || '').toLowerCase();
+        if (l === 'high') return 'mystery-confidence--high';
+        if (l === 'medium') return 'mystery-confidence--medium';
+        return 'mystery-confidence--low';
+      }
+
+      function showResults(data) {
+        // Fetch the top match from Rebrickable for image
+        BrickBotAPI.getPart(data.partNumber).then(function (part) {
+          var html = '';
+
+          // Top match card
+          html += '<div class="mystery-match-card">';
+          html += '  <img class="mystery-match-img" src="' + (part.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(part.name) + '" onerror="this.style.background=\'#eee\'">';
+          html += '  <div class="mystery-match-info">';
+          html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(part.name) + '</div>';
+          html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(part.part_num) + '</div>';
+          html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
+          html += '  </div>';
+          html += '</div>';
+
+          // Alternatives
+          if (data.alternatives && data.alternatives.length > 0) {
+            html += '<div class="mystery-alt-label">Could also be...</div>';
+
+            // Fetch alternative part images
+            var altPromises = data.alternatives.map(function (alt) {
+              return BrickBotAPI.getPart(alt.partNumber).catch(function () {
+                return { name: alt.partName, part_num: alt.partNumber, part_img_url: '' };
+              });
+            });
+
+            Promise.all(altPromises).then(function (altParts) {
+              altParts.forEach(function (altPart) {
+                html += '<a class="mystery-alt-card" href="part.html?part=' + encodeURIComponent(altPart.part_num) + '">';
+                html += '  <img class="mystery-alt-img" src="' + (altPart.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(altPart.name) + '" onerror="this.style.background=\'#eee\'">';
+                html += '  <div>';
+                html += '    <div class="mystery-alt-name">' + BrickBotUI.escapeHtml(altPart.name) + '</div>';
+                html += '    <div class="mystery-alt-num">#' + BrickBotUI.escapeHtml(altPart.part_num) + '</div>';
+                html += '  </div>';
+                html += '</a>';
+              });
+
+              html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(part.part_num) + '">View full details \u2192</a>';
+              resultsInner.innerHTML = html;
+              resultsSection.style.display = 'block';
+              resultsSection.scrollIntoView({ behavior: 'smooth' });
+            });
+          } else {
+            html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(part.part_num) + '">View full details \u2192</a>';
+            resultsInner.innerHTML = html;
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }).catch(function () {
+          // Rebrickable lookup failed but we still have Claude's answer
+          var html = '';
+          html += '<div class="mystery-match-card">';
+          html += '  <div class="mystery-match-info">';
+          html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(data.partName || 'Unknown') + '</div>';
+          html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(data.partNumber) + '</div>';
+          html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
+          html += '  </div>';
+          html += '</div>';
+          html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(data.partNumber) + '">View full details \u2192</a>';
+          resultsInner.innerHTML = html;
+          resultsSection.style.display = 'block';
+        });
+      }
+
+    })();
+  </script>
+</body>
+</html>
