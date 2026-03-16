@@ -75,6 +75,104 @@
       margin-bottom: 12px;
     }
 
+    /* Multi-photo staging area */
+    .mystery-staged {
+      max-width: 500px;
+      margin: 20px auto 0;
+      display: none;
+    }
+    .mystery-staged-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--dark-navy);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .mystery-staged-thumbs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .mystery-staged-thumb-wrap {
+      position: relative;
+    }
+    .mystery-staged-thumb {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 2px solid #ddd;
+    }
+    .mystery-staged-remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      background: var(--lego-red);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 13px;
+      line-height: 22px;
+      text-align: center;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      padding: 0;
+    }
+    .mystery-staged-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .mystery-staged-add-btn {
+      background: transparent;
+      color: var(--dark-navy);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 2px solid #ddd;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .mystery-staged-add-btn:hover {
+      border-color: var(--lego-yellow);
+    }
+    .mystery-staged-add-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .mystery-identify-btn {
+      background: var(--lego-yellow);
+      color: var(--dark-navy);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 10px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      transition: background 0.2s;
+    }
+    .mystery-identify-btn:hover {
+      background: var(--lego-red);
+      color: var(--white);
+    }
+    .mystery-identify-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .mystery-staged-hint {
+      font-size: 12px;
+      color: var(--muted-gray);
+      text-align: center;
+      margin-top: 10px;
+    }
+
     .mystery-results {
       background: var(--white);
       padding: 40px 24px;
@@ -330,7 +428,18 @@
       </div>
     </div>
 
-    <div class="mystery-preview" id="mystery-preview">
+    <!-- Staged photos -->
+    <div class="mystery-staged" id="mystery-staged">
+      <div class="mystery-staged-label" id="staged-label">1 of 3 photos</div>
+      <div class="mystery-staged-thumbs" id="staged-thumbs"></div>
+      <div class="mystery-staged-actions">
+        <button class="mystery-staged-add-btn" id="staged-add-btn">+ Add another angle</button>
+        <button class="mystery-identify-btn" id="staged-identify-btn">Identify piece</button>
+      </div>
+      <p class="mystery-staged-hint">Tip: Multiple angles help BrickBot identify tricky pieces</p>
+    </div>
+
+    <div class="mystery-preview" id="mystery-preview" style="display:none;">
       <img id="preview-img" src="" alt="Your photo">
     </div>
 
@@ -389,6 +498,15 @@
       var resultsInner = document.getElementById('mystery-results-inner');
       var errorSection = document.getElementById('mystery-error');
 
+      // Staged photos state
+      var stagedPhotos = []; // array of { dataUrl, mediaType }
+      var MAX_PHOTOS = 3;
+      var stagedSection = document.getElementById('mystery-staged');
+      var stagedThumbs = document.getElementById('staged-thumbs');
+      var stagedLabel = document.getElementById('staged-label');
+      var stagedAddBtn = document.getElementById('staged-add-btn');
+      var stagedIdentifyBtn = document.getElementById('staged-identify-btn');
+
       // Webcam refs
       var webcamBtn = document.getElementById('webcam-btn');
       var webcamArea = document.getElementById('webcam-area');
@@ -397,6 +515,91 @@
       var captureBtn = document.getElementById('capture-btn');
       var stopWebcamBtn = document.getElementById('stop-webcam-btn');
       var webcamStream = null;
+
+      // --- Staged photos UI ---
+      function renderStaged() {
+        stagedThumbs.innerHTML = '';
+        stagedPhotos.forEach(function (photo, i) {
+          var wrap = document.createElement('div');
+          wrap.className = 'mystery-staged-thumb-wrap';
+          var img = document.createElement('img');
+          img.className = 'mystery-staged-thumb';
+          img.src = photo.dataUrl;
+          img.alt = 'Photo ' + (i + 1);
+          var removeBtn = document.createElement('button');
+          removeBtn.className = 'mystery-staged-remove';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.addEventListener('click', function () {
+            stagedPhotos.splice(i, 1);
+            renderStaged();
+          });
+          wrap.appendChild(img);
+          wrap.appendChild(removeBtn);
+          stagedThumbs.appendChild(wrap);
+        });
+
+        stagedLabel.textContent = stagedPhotos.length + ' of ' + MAX_PHOTOS + ' photo' + (stagedPhotos.length === 1 ? '' : 's');
+        stagedAddBtn.disabled = stagedPhotos.length >= MAX_PHOTOS;
+        stagedAddBtn.textContent = stagedPhotos.length >= MAX_PHOTOS ? 'Max photos reached' : '+ Add another angle';
+        stagedSection.style.display = stagedPhotos.length > 0 ? 'block' : 'none';
+      }
+
+      function stagePhoto(dataUrl, mediaType) {
+        if (stagedPhotos.length >= MAX_PHOTOS) return;
+        stagedPhotos.push({ dataUrl: dataUrl, mediaType: mediaType });
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        renderStaged();
+      }
+
+      // "Add another angle" re-opens the upload/webcam options
+      stagedAddBtn.addEventListener('click', function () {
+        photoInput.click();
+      });
+
+      // "Identify piece" sends all staged photos to Claude
+      stagedIdentifyBtn.addEventListener('click', function () {
+        if (stagedPhotos.length === 0) return;
+        sendStagedPhotos();
+      });
+
+      function sendStagedPhotos() {
+        // Show first photo as preview
+        previewImg.src = stagedPhotos[0].dataUrl;
+        previewSection.style.display = 'block';
+        loadingSection.style.display = 'block';
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        stagedSection.style.display = 'none';
+
+        var images = stagedPhotos.map(function (p) {
+          return { base64: p.dataUrl.split(',')[1], mediaType: p.mediaType };
+        });
+
+        fetch('/api/identify-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: images })
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed');
+          return res.json();
+        })
+        .then(function (data) {
+          loadingSection.style.display = 'none';
+
+          if (data.error || !data.partNumber) {
+            errorSection.style.display = 'block';
+            return;
+          }
+
+          showResults(data);
+        })
+        .catch(function () {
+          loadingSection.style.display = 'none';
+          errorSection.style.display = 'block';
+        });
+      }
 
       // Click to upload
       uploadZone.addEventListener('click', function () {
@@ -429,45 +632,9 @@
       function processFile(file) {
         var reader = new FileReader();
         reader.onload = function () {
-          sendToIdentify(reader.result, file.type || 'image/jpeg');
+          stagePhoto(reader.result, file.type || 'image/jpeg');
         };
         reader.readAsDataURL(file);
-      }
-
-      // --- Shared: send a dataUrl to Claude for identification ---
-      function sendToIdentify(dataUrl, mediaType) {
-        // Show preview
-        previewImg.src = dataUrl;
-        previewSection.style.display = 'block';
-        loadingSection.style.display = 'block';
-        resultsSection.style.display = 'none';
-        errorSection.style.display = 'none';
-
-        var base64 = dataUrl.split(',')[1];
-
-        fetch('/api/identify-photo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
-        })
-        .then(function (res) {
-          if (!res.ok) throw new Error('Failed');
-          return res.json();
-        })
-        .then(function (data) {
-          loadingSection.style.display = 'none';
-
-          if (data.error || !data.partNumber) {
-            errorSection.style.display = 'block';
-            return;
-          }
-
-          showResults(data);
-        })
-        .catch(function () {
-          loadingSection.style.display = 'none';
-          errorSection.style.display = 'block';
-        });
       }
 
       // --- Webcam ---
@@ -487,7 +654,6 @@
             webcamArea.style.display = 'block';
             webcamBtn.style.display = 'none';
 
-            // Wait for video to be ready before enabling capture
             webcamVideo.onloadedmetadata = function () {
               webcamVideo.play();
               captureBtn.disabled = false;
@@ -502,7 +668,6 @@
       captureBtn.addEventListener('click', function () {
         if (!webcamStream) return;
 
-        // Ensure video dimensions are available
         var vw = webcamVideo.videoWidth || webcamVideo.clientWidth || 640;
         var vh = webcamVideo.videoHeight || webcamVideo.clientHeight || 480;
 
@@ -511,7 +676,6 @@
           return;
         }
 
-        // Draw current video frame to canvas
         webcamCanvas.width = vw;
         webcamCanvas.height = vh;
         var ctx = webcamCanvas.getContext('2d');
@@ -519,17 +683,18 @@
 
         var dataUrl = webcamCanvas.toDataURL('image/jpeg', 0.85);
 
-        // Stop webcam first
-        stopWebcam();
-
-        // Verify we got a real image (not empty)
         if (!dataUrl || dataUrl.length < 100) {
           alert('Could not capture image — please try again.');
           return;
         }
 
-        // Send captured image to identify
-        sendToIdentify(dataUrl, 'image/jpeg');
+        // Stage the photo but keep webcam open for more captures
+        stagePhoto(dataUrl, 'image/jpeg');
+
+        // If max photos reached, close webcam
+        if (stagedPhotos.length >= MAX_PHOTOS) {
+          stopWebcam();
+        }
       });
 
       stopWebcamBtn.addEventListener('click', stopWebcam);
