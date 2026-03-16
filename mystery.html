@@ -477,12 +477,22 @@
           return;
         }
 
+        captureBtn.disabled = true;
+        captureBtn.textContent = 'Starting...';
+
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
           .then(function (stream) {
             webcamStream = stream;
             webcamVideo.srcObject = stream;
             webcamArea.style.display = 'block';
             webcamBtn.style.display = 'none';
+
+            // Wait for video to be ready before enabling capture
+            webcamVideo.onloadedmetadata = function () {
+              webcamVideo.play();
+              captureBtn.disabled = false;
+              captureBtn.textContent = 'Capture';
+            };
           })
           .catch(function () {
             alert('Could not access your camera. Check your browser permissions.');
@@ -492,16 +502,31 @@
       captureBtn.addEventListener('click', function () {
         if (!webcamStream) return;
 
+        // Ensure video dimensions are available
+        var vw = webcamVideo.videoWidth || webcamVideo.clientWidth || 640;
+        var vh = webcamVideo.videoHeight || webcamVideo.clientHeight || 480;
+
+        if (vw === 0 || vh === 0) {
+          alert('Camera is still starting up — try again in a moment.');
+          return;
+        }
+
         // Draw current video frame to canvas
-        webcamCanvas.width = webcamVideo.videoWidth;
-        webcamCanvas.height = webcamVideo.videoHeight;
+        webcamCanvas.width = vw;
+        webcamCanvas.height = vh;
         var ctx = webcamCanvas.getContext('2d');
-        ctx.drawImage(webcamVideo, 0, 0);
+        ctx.drawImage(webcamVideo, 0, 0, vw, vh);
 
         var dataUrl = webcamCanvas.toDataURL('image/jpeg', 0.85);
 
-        // Stop webcam
+        // Stop webcam first
         stopWebcam();
+
+        // Verify we got a real image (not empty)
+        if (!dataUrl || dataUrl.length < 100) {
+          alert('Could not capture image — please try again.');
+          return;
+        }
 
         // Send captured image to identify
         sendToIdentify(dataUrl, 'image/jpeg');
