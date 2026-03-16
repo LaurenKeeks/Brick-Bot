@@ -71,11 +71,42 @@
       document.title = 'BrickBot — Part ' + partNum;
       BrickBotUI.showLoading(page);
 
+      // Try to extract base part number for printed/decorated parts (e.g. "973pb0158" → "973")
+      var isDecoratedPart = false;
+      var originalPartNum = partNum;
+
+      function getBasePartNum(num) {
+        var match = num.match(/^(\d+)(pb|pr|pat)/i);
+        return match ? match[1] : null;
+      }
+
+      // Fetch part with fallback for decorated/printed parts
+      function fetchPartWithFallback(num) {
+        return BrickBotAPI.getPart(num).catch(function () {
+          var baseNum = getBasePartNum(num);
+          if (baseNum && baseNum !== num) {
+            isDecoratedPart = true;
+            partNum = baseNum;
+            return BrickBotAPI.getPart(baseNum);
+          }
+          throw new Error('Part not found');
+        });
+      }
+
       // Fetch part + colors first (required), sets separately (non-critical)
       Promise.all([
-        BrickBotAPI.getPart(partNum),
-        BrickBotAPI.getColors(partNum),
-        BrickBotAPI.getSets(partNum).catch(function () { return { results: [], count: 0 }; })
+        fetchPartWithFallback(partNum),
+        BrickBotAPI.getColors(partNum).catch(function () {
+          // If decorated part failed, retry with base number
+          var baseNum = getBasePartNum(originalPartNum);
+          if (baseNum) return BrickBotAPI.getColors(baseNum);
+          return { results: [] };
+        }),
+        BrickBotAPI.getSets(partNum).catch(function () {
+          var baseNum = getBasePartNum(originalPartNum);
+          if (baseNum) return BrickBotAPI.getSets(baseNum).catch(function () { return { results: [], count: 0 }; });
+          return { results: [], count: 0 };
+        })
       ]).then(function (results) {
         var part = results[0];
         var colorsData = results[1];
@@ -110,6 +141,11 @@
         html += '      </div>';
         html += '    </div>';
         html += '  </div>';
+        if (isDecoratedPart) {
+          html += '  <div style="max-width:900px;margin:12px auto 0;padding:8px 16px;background:#fffbe6;border-radius:10px;font-size:13px;color:#555;text-align:center;">';
+          html += '    Showing base part \u2014 <strong>' + BrickBotUI.escapeHtml(originalPartNum) + '</strong> has a printed pattern.';
+          html += '  </div>';
+        }
         html += '</section>';
 
         // --- Color Swatches ---

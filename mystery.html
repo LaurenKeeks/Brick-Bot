@@ -717,6 +717,14 @@
       }
 
       function showResults(data) {
+        // Auto-redirect for High or Medium confidence
+        var conf = (data.confidence || '').toLowerCase();
+        if (conf === 'high' || conf === 'medium') {
+          window.location.href = 'part.html?part=' + encodeURIComponent(data.partNumber);
+          return;
+        }
+
+        // Low confidence — show results for the user to choose
         // Fetch the top match from Rebrickable for image
         BrickBotAPI.getPart(data.partNumber).then(function (part) {
           var html = '';
