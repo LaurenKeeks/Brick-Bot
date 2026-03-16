@@ -716,18 +716,38 @@
         return 'mystery-confidence--low';
       }
 
+      function isMinifig(data) {
+        if (data.partType === 'minifig') return true;
+        if (data.partNumber && data.partNumber.indexOf('fig-') === 0) return true;
+        var name = (data.partName || '').toLowerCase();
+        return name.indexOf('minifigure') !== -1 || name.indexOf('minifig') !== -1;
+      }
+
+      function buildPartUrl(data) {
+        var url = 'part.html?part=' + encodeURIComponent(data.partNumber);
+        if (isMinifig(data)) url += '&type=minifig';
+        return url;
+      }
+
       function showResults(data) {
         // Auto-redirect for High or Medium confidence
         var conf = (data.confidence || '').toLowerCase();
         if (conf === 'high' || conf === 'medium') {
-          window.location.href = 'part.html?part=' + encodeURIComponent(data.partNumber);
+          window.location.href = buildPartUrl(data);
           return;
         }
 
         // Low confidence — show results for the user to choose
-        // Fetch the top match from Rebrickable for image
-        BrickBotAPI.getPart(data.partNumber).then(function (part) {
+        // Fetch the top match from Rebrickable (use minifig API if needed)
+        var fetchPromise = isMinifig(data)
+          ? BrickBotAPI.getMinifig(data.partNumber).then(function (fig) {
+              return { name: fig.name, part_num: fig.set_num || data.partNumber, part_img_url: fig.set_img_url || '' };
+            })
+          : BrickBotAPI.getPart(data.partNumber);
+
+        fetchPromise.then(function (part) {
           var html = '';
+          var detailUrl = buildPartUrl(data);
 
           // Top match card
           html += '<div class="mystery-match-card">';
@@ -743,16 +763,27 @@
           if (data.alternatives && data.alternatives.length > 0) {
             html += '<div class="mystery-alt-label">Could also be...</div>';
 
-            // Fetch alternative part images
             var altPromises = data.alternatives.map(function (alt) {
+              if (alt.partType === 'minifig' || (alt.partNumber && alt.partNumber.indexOf('fig-') === 0)) {
+                return BrickBotAPI.getMinifig(alt.partNumber).then(function (fig) {
+                  return { name: fig.name, part_num: fig.set_num || alt.partNumber, part_img_url: fig.set_img_url || '' };
+                }).catch(function () {
+                  return { name: alt.partName, part_num: alt.partNumber, part_img_url: '' };
+                });
+              }
               return BrickBotAPI.getPart(alt.partNumber).catch(function () {
                 return { name: alt.partName, part_num: alt.partNumber, part_img_url: '' };
               });
             });
 
             Promise.all(altPromises).then(function (altParts) {
-              altParts.forEach(function (altPart) {
-                html += '<a class="mystery-alt-card" href="part.html?part=' + encodeURIComponent(altPart.part_num) + '">';
+              data.alternatives.forEach(function (alt, idx) {
+                var altPart = altParts[idx];
+                var altUrl = 'part.html?part=' + encodeURIComponent(altPart.part_num);
+                if (alt.partType === 'minifig' || (alt.partNumber && alt.partNumber.indexOf('fig-') === 0)) {
+                  altUrl += '&type=minifig';
+                }
+                html += '<a class="mystery-alt-card" href="' + altUrl + '">';
                 html += '  <img class="mystery-alt-img" src="' + (altPart.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(altPart.name) + '" onerror="this.style.background=\'#eee\'">';
                 html += '  <div>';
                 html += '    <div class="mystery-alt-name">' + BrickBotUI.escapeHtml(altPart.name) + '</div>';
@@ -761,19 +792,18 @@
                 html += '</a>';
               });
 
-              html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(part.part_num) + '">View full details \u2192</a>';
+              html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
               resultsInner.innerHTML = html;
               resultsSection.style.display = 'block';
               resultsSection.scrollIntoView({ behavior: 'smooth' });
             });
           } else {
-            html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(part.part_num) + '">View full details \u2192</a>';
+            html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
             resultsInner.innerHTML = html;
             resultsSection.style.display = 'block';
             resultsSection.scrollIntoView({ behavior: 'smooth' });
           }
         }).catch(function () {
-          // Rebrickable lookup failed but we still have Claude's answer
           var html = '';
           html += '<div class="mystery-match-card">';
           html += '  <div class="mystery-match-info">';
@@ -782,7 +812,7 @@
           html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
           html += '  </div>';
           html += '</div>';
-          html += '<a class="mystery-cta" href="part.html?part=' + encodeURIComponent(data.partNumber) + '">View full details \u2192</a>';
+          html += '<a class="mystery-cta" href="' + buildPartUrl(data) + '">View full details \u2192</a>';
           resultsInner.innerHTML = html;
           resultsSection.style.display = 'block';
         });

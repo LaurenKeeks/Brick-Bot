@@ -44,11 +44,16 @@ exports.handler = async (event) => {
 
     content.push({
       type: 'text',
-      text: `You are a LEGO piece identification expert. A user is showing you a LEGO piece — it may be held in their hand, sitting on a desk, or on any surface. The background may not be clean or white.
+      text: `You are a LEGO identification expert. A user is showing you a LEGO item — it may be held in their hand, sitting on a desk, or on any surface. The background may not be clean or white.
 
-Examine ${photoCount} carefully. Focus on the SHAPE, COLOR, STUD PATTERN, and STRUCTURE of the LEGO piece itself. Ignore the background, fingers, and other non-LEGO objects.
+Examine ${photoCount} carefully. Focus on the SHAPE, COLOR, STUD PATTERN, and STRUCTURE. Ignore the background, fingers, and other non-LEGO objects.
 
-IMPORTANT RULES:
+IMPORTANT — DETERMINE THE TYPE:
+- If this is a COMPLETE LEGO MINIFIGURE (a small person-shaped figure with head, torso, and legs assembled together), return a fig number like "fig-000001" as the partNumber and set partType to "minifig".
+- If this is an INDIVIDUAL PIECE (a brick, plate, slope, wheel, or even a separate minifigure torso, head, or legs), return a regular part number and set partType to "part".
+- Common minifigure fig numbers: fig-000001 through fig-015000+. If you recognize the character (e.g. a Star Wars stormtrooper minifig), try to identify the specific fig number.
+
+IDENTIFICATION RULES:
 - You must ALWAYS return your best guess, even if you are unsure. Never refuse to identify.
 - If you see a standard brick shape with studs on top, consider common bricks (3001, 3002, 3003, 3004, 3005, 3010, etc.)
 - If you see a flat piece without height, consider plates (3020, 3021, 3023, 3024, etc.)
@@ -58,13 +63,14 @@ IMPORTANT RULES:
 
 Respond ONLY with valid JSON in this exact format, no other text:
 {
-  "partName": "exact LEGO part name e.g. Brick 2 x 4",
-  "partNumber": "part number as string e.g. 3001",
+  "partName": "exact name e.g. Brick 2 x 4 or Minifigure Stormtrooper",
+  "partNumber": "part number (e.g. 3001) or fig number (e.g. fig-000001)",
+  "partType": "part or minifig",
   "confidence": "High or Medium or Low",
   "reasoning": "one sentence explaining why you chose this identification",
   "alternatives": [
-    { "partName": "alternative name", "partNumber": "alt part number" },
-    { "partName": "alternative name 2", "partNumber": "alt part number 2" }
+    { "partName": "alternative name", "partNumber": "alt number", "partType": "part or minifig" },
+    { "partName": "alternative name 2", "partNumber": "alt number 2", "partType": "part or minifig" }
   ]
 }
 

@@ -61,6 +61,7 @@
 
       var params = new URLSearchParams(window.location.search);
       var partNum = params.get('part');
+      var partType = params.get('type') || '';
       var page = document.getElementById('part-page');
 
       if (!partNum) {
@@ -68,9 +69,83 @@
         return;
       }
 
-      document.title = 'BrickBot — Part ' + partNum;
+      // Detect minifig from URL param, part number prefix, or explicit type
+      var isMinifig = partType === 'minifig' || partNum.indexOf('fig-') === 0;
+
+      document.title = 'BrickBot — ' + (isMinifig ? 'Minifig ' : 'Part ') + partNum;
       BrickBotUI.showLoading(page);
 
+      // --- Minifig path ---
+      if (isMinifig) {
+        BrickBotAPI.getMinifig(partNum).then(function (fig) {
+          var sets = fig.sets || [];
+          BrickBotUI.addRecentLookup(partNum, fig.name, fig.set_img_url);
+
+          var html = '';
+
+          // Header
+          html += '<section class="part-header">';
+          html += '  <div class="part-header-inner">';
+          html += '    <div class="part-image-wrap">';
+          if (fig.set_img_url) {
+            html += '    <img class="part-image" src="' + fig.set_img_url + '" alt="' + BrickBotUI.escapeHtml(fig.name) + '">';
+          } else {
+            html += '    <div class="part-image-placeholder">No image available</div>';
+          }
+          html += '    </div>';
+          html += '    <div class="part-info">';
+          html += '      <h1 class="part-name">' + BrickBotUI.escapeHtml(fig.name) + '</h1>';
+          html += '      <span class="part-number">' + BrickBotUI.escapeHtml(fig.set_num || partNum) + '</span>';
+          html += '      <div class="part-stats">';
+          html += '        <span class="stat-pill" style="background:var(--lego-blue);color:white;">Minifigure</span>';
+          html += '        <span class="stat-pill">' + (fig.num_parts || 0) + ' parts</span>';
+          if (sets.length > 0) {
+            html += '        <span class="stat-pill">' + sets.length + ' sets</span>';
+          }
+          html += '      </div>';
+          html += '    </div>';
+          html += '  </div>';
+          html += '</section>';
+
+          // Sets
+          if (sets.length > 0) {
+            html += '<section class="sets-section">';
+            html += '  <h2 class="section-title">Found in ' + sets.length + ' sets</h2>';
+            html += '  <div class="sets-grid">';
+            sets.forEach(function (s) {
+              var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
+              html += '<a class="set-card" href="' + setUrl + '" target="_blank" rel="noopener">';
+              if (s.set_img_url) {
+                html += '  <img class="set-card-img" src="' + s.set_img_url + '" alt="' + BrickBotUI.escapeHtml(s.name) + '">';
+              } else {
+                html += '  <div class="set-card-img-placeholder">No image</div>';
+              }
+              html += '  <div class="set-card-name">' + BrickBotUI.escapeHtml(s.name) + '</div>';
+              html += '  <div class="set-card-meta">' + (s.year || '') + ' &middot; ' + (s.num_parts || '?') + ' pcs</div>';
+              html += '</a>';
+            });
+            html += '  </div>';
+            html += '</section>';
+          }
+
+          // Buy links
+          html += '<section class="buy-links" style="display:flex;">';
+          html += '  <a class="buy-btn buy-btn--blue" href="https://www.bricklink.com/v2/catalog/catalogitem.page?M=' + encodeURIComponent(fig.set_num || partNum) + '" target="_blank" rel="noopener">Find on BrickLink</a>';
+          html += '  <a class="buy-btn buy-btn--green" href="https://www.amazon.com/s?k=LEGO+' + encodeURIComponent(fig.name) + '" target="_blank" rel="noopener">Search Amazon</a>';
+          html += '</section>';
+
+          page.innerHTML = html;
+
+          // Hide the static buy links section
+          var staticBuyLinks = document.getElementById('buy-links');
+          if (staticBuyLinks) staticBuyLinks.style.display = 'none';
+        }).catch(function () {
+          BrickBotUI.showError(page, "BrickBot couldn\u2019t find that minifigure. Double-check the figure number or try a photo.");
+        });
+        return;
+      }
+
+      // --- Regular part path ---
       // Try to extract base part number for printed/decorated parts (e.g. "973pb0158" → "973")
       var isDecoratedPart = false;
       var originalPartNum = partNum;
@@ -97,7 +172,6 @@
       Promise.all([
         fetchPartWithFallback(partNum),
         BrickBotAPI.getColors(partNum).catch(function () {
-          // If decorated part failed, retry with base number
           var baseNum = getBasePartNum(originalPartNum);
           if (baseNum) return BrickBotAPI.getColors(baseNum);
           return { results: [] };

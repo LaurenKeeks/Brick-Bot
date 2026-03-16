@@ -138,6 +138,18 @@ var BrickBotAPI = (function () {
     return res.json();
   }
 
+  async function getMinifig(figNum) {
+    var cacheKey = 'rb_minifig_' + figNum;
+    var cached = getCached(cacheKey);
+    if (cached) return cached;
+
+    var res = await fetch('/api/get-minifig?fig=' + encodeURIComponent(figNum));
+    if (!res.ok) throw new Error('Minifig not found');
+    var data = await res.json();
+    setCache(cacheKey, data);
+    return data;
+  }
+
   return {
     getPart: getPart,
     getColors: getColors,
@@ -145,6 +157,7 @@ var BrickBotAPI = (function () {
     getIdeas: getIdeas,
     chatFollowup: chatFollowup,
     getBenchIdeas: getBenchIdeas,
-    getChallenge: getChallenge
+    getChallenge: getChallenge,
+    getMinifig: getMinifig
   };
 })();
