@@ -349,7 +349,16 @@
 
   <!-- Error -->
   <div class="mystery-error" id="mystery-error">
-    BrickBot isn't sure about this one! Try a clearer photo on a plain white surface, or check the part number stamped on the bottom of the piece.
+    <div style="font-size:32px;margin-bottom:12px;">🤖</div>
+    <p style="font-weight:700;color:var(--dark-navy);font-size:16px;margin-bottom:8px;">BrickBot isn't sure about this one!</p>
+    <p style="margin-bottom:16px;">For the best results, try this:</p>
+    <ul style="text-align:left;max-width:360px;margin:0 auto 20px;font-size:14px;line-height:1.8;color:#555;">
+      <li>Lay the piece flat on a <strong>plain white surface</strong></li>
+      <li>Make sure there's <strong>good lighting</strong> with no shadows</li>
+      <li>Get close so the piece fills most of the photo</li>
+      <li>Check the <strong>part number stamped on the bottom</strong> of the piece</li>
+    </ul>
+    <button class="mystery-cta" id="try-again-btn" style="max-width:300px;margin:0 auto;cursor:pointer;border:none;font-family:'Nunito',sans-serif;">Try Again</button>
   </div>
 
   <!-- Disclaimer -->
@@ -403,6 +412,24 @@
       var stopWebcamBtn = document.getElementById('stop-webcam-btn');
       var webcamStream = null;
 
+      // --- Reset everything so user can try another photo ---
+      function resetForRetry() {
+        photoInput.value = '';
+        previewSection.style.display = 'none';
+        loadingSection.style.display = 'none';
+        uploadZone.style.display = 'block';
+        webcamBtn.style.display = 'inline-block';
+        document.querySelector('.mystery-options').style.display = 'block';
+      }
+
+      // "Try Again" button
+      document.getElementById('try-again-btn').addEventListener('click', function () {
+        errorSection.style.display = 'none';
+        resultsSection.style.display = 'none';
+        resetForRetry();
+        uploadZone.scrollIntoView({ behavior: 'smooth' });
+      });
+
       // --- Send image to Brickognize via Netlify function ---
       function sendToIdentify(dataUrl, mediaType) {
         previewImg.src = dataUrl;
@@ -427,14 +454,17 @@
 
           if (data.error || !data.partNumber) {
             errorSection.style.display = 'block';
+            resetForRetry();
             return;
           }
 
           showResults(data);
+          resetForRetry();
         })
         .catch(function () {
           loadingSection.style.display = 'none';
           errorSection.style.display = 'block';
+          resetForRetry();
         });
       }
 
