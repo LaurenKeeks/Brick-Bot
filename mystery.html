@@ -621,9 +621,17 @@
         }
 
         html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+        html += '<button class="mystery-retry-btn" id="results-try-again" style="display:block;width:100%;max-width:300px;margin:16px auto 0;padding:12px;border-radius:12px;border:2px solid #ddd;background:transparent;color:var(--muted-gray);font-weight:700;font-size:14px;cursor:pointer;font-family:Nunito,sans-serif;">Try Another Piece</button>';
         resultsInner.innerHTML = html;
         resultsSection.style.display = 'block';
         resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('results-try-again').addEventListener('click', function () {
+          resultsSection.style.display = 'none';
+          errorSection.style.display = 'none';
+          resetForRetry();
+          uploadZone.scrollIntoView({ behavior: 'smooth' });
+        });
       }
 
     })();
