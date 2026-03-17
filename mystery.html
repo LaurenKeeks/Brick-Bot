@@ -452,7 +452,11 @@
         .then(function (data) {
           loadingSection.style.display = 'none';
 
-          if (data.error || !data.partNumber) {
+          // Log the full response for debugging
+          console.log('[BrickBot Photo ID] API response:', JSON.stringify(data));
+
+          // Check for errors — a result is valid if it has partNumber OR partName
+          if (data.error || (!data.partNumber && !data.partName)) {
             errorSection.style.display = 'block';
             resetForRetry();
             return;
@@ -590,11 +594,12 @@
       }
 
       function showResults(data) {
-        var detailUrl = buildDetailUrl(data);
+        var hasPartNumber = data.partNumber && data.partNumber.length > 0;
+        var detailUrl = hasPartNumber ? buildDetailUrl(data) : null;
 
-        // Auto-redirect for High or Medium confidence
+        // Auto-redirect for High or Medium confidence — only if we have a part/fig number
         var conf = (data.confidence || '').toLowerCase();
-        if (conf === 'high' || conf === 'medium') {
+        if (hasPartNumber && (conf === 'high' || conf === 'medium')) {
           window.location.href = detailUrl;
           return;
         }
@@ -638,10 +643,12 @@
           });
         }
 
-        if (isFig) {
-          html += '<a class="mystery-cta" href="' + detailUrl + '">View sets this minifig appears in \u2192</a>';
-        } else {
-          html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+        if (detailUrl) {
+          if (isFig) {
+            html += '<a class="mystery-cta" href="' + detailUrl + '">View sets this minifig appears in \u2192</a>';
+          } else {
+            html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+          }
         }
         html += '<button class="mystery-retry-btn" id="results-try-again" style="display:block;width:100%;max-width:300px;margin:16px auto 0;padding:12px;border-radius:12px;border:2px solid #ddd;background:transparent;color:var(--muted-gray);font-weight:700;font-size:14px;cursor:pointer;font-family:Nunito,sans-serif;">Try Another Piece</button>';
         resultsInner.innerHTML = html;

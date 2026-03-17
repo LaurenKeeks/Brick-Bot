@@ -164,17 +164,18 @@ exports.handler = async (event) => {
         return await enrichPart(item.id, item.name, item.img_url, altConf);
       }));
 
-      console.log('[identify-photo] SUCCESS via Brickognize:', topItem.id, 'type:', topResult.partType);
+      const brickognizeResponse = {
+        ...topResult,
+        score: topItem.score,
+        source: 'brickognize',
+        alternatives
+      };
+      console.log('[identify-photo] FINAL RESPONSE (Brickognize):', JSON.stringify(brickognizeResponse));
 
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...topResult,
-          score: topItem.score,
-          source: 'brickognize',
-          alternatives
-        })
+        body: JSON.stringify(brickognizeResponse)
       };
     } catch (err) {
       console.error('[identify-photo] Brickognize enrichment error:', err.message);
@@ -294,17 +295,18 @@ You MUST always return one of these two JSON formats. Never refuse. If uncertain
         }
       }
 
-      console.log('[identify-photo] SUCCESS via Claude (minifig):', enriched.partNumber);
+      const claudeMinifigResponse = {
+        ...enriched,
+        theme: parsed.theme || '',
+        source: 'claude',
+        alternatives: altResults
+      };
+      console.log('[identify-photo] FINAL RESPONSE (Claude minifig):', JSON.stringify(claudeMinifigResponse));
 
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...enriched,
-          theme: parsed.theme || '',
-          source: 'claude',
-          alternatives: altResults
-        })
+        body: JSON.stringify(claudeMinifigResponse)
       };
     }
 
@@ -315,16 +317,17 @@ You MUST always return one of these two JSON formats. Never refuse. If uncertain
       return await enrichPart(a.partNumber || '', a.partName, '', 'Low');
     }));
 
-    console.log('[identify-photo] SUCCESS via Claude (part):', partResult.partNumber);
+    const claudePartResponse = {
+      ...partResult,
+      source: 'claude',
+      alternatives: partAlts
+    };
+    console.log('[identify-photo] FINAL RESPONSE (Claude part):', JSON.stringify(claudePartResponse));
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...partResult,
-        source: 'claude',
-        alternatives: partAlts
-      })
+      body: JSON.stringify(claudePartResponse)
     };
   } catch (err) {
     console.error('[identify-photo] Claude error:', JSON.stringify({ name: err.name, message: err.message, status: err.status }));
