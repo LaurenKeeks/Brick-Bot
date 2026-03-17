@@ -37,15 +37,29 @@ exports.handler = async (event) => {
     return 'Low';
   }
 
+  // Detect minifig-style IDs: fig-000001, twn274, cty0982, sw0001, cas123, col456, hp012, etc.
+  // These are 2-4 letter prefixes followed by digits — NOT regular part numbers (which are pure digits or digits+letters like 3001, 973pb0158)
+  function isMinifigId(id) {
+    if (!id) return false;
+    if (id.startsWith('fig-')) return true;
+    // Minifig IDs: 2-4 lowercase letters followed by digits (twn274, cty0982, sw0001, col123, hp012)
+    // Part numbers: start with digits (3001, 973pb0158) or are alphanumeric like 3001special
+    return /^[a-z]{2,4}\d+$/i.test(id);
+  }
+
   // Helper: enrich a minifig ID via Rebrickable, with fallback to parts
   async function enrichMinifig(figNum, name, imgUrl, confidence) {
     let figData = null;
-    // Try direct minifig lookup
+    // Try direct minifig lookup — this is the correct endpoint for twn274, cty0982, fig-000001, etc.
     if (figNum) {
+      console.log('[identify-photo] enrichMinifig: looking up /minifigs/' + figNum + '/');
       try {
         const res = await fetch(`${rbBase}/minifigs/${encodeURIComponent(figNum)}/`, { headers: rbHeaders });
+        console.log('[identify-photo] enrichMinifig /minifigs/ status:', res.status);
         if (res.ok) figData = await res.json();
-      } catch (e) {}
+      } catch (e) {
+        console.error('[identify-photo] enrichMinifig fetch error:', e.message);
+      }
     }
 
     // If direct lookup failed, search minifigs by name
@@ -183,21 +197,23 @@ exports.handler = async (event) => {
   if (brickognizeResult && brickognizeResult.length > 0) {
     try {
       const topItem = brickognizeResult[0];
-      const isMinifig = (topItem.category || '').toLowerCase().includes('minifig') ||
-                        (topItem.id || '').startsWith('fig-');
+      const topIsFig = isMinifigId(topItem.id) ||
+                       (topItem.category || '').toLowerCase().includes('minifig');
+
+      console.log('[identify-photo] Top item:', topItem.id, 'isMinifig:', topIsFig, 'category:', topItem.category);
 
       const topConf = scoreToConfidence(topItem.score);
-      const topResult = isMinifig
+      const topResult = topIsFig
         ? await enrichMinifig(topItem.id, topItem.name, topItem.img_url, topConf)
         : await enrichPart(topItem.id, topItem.name, topItem.img_url, topConf);
 
       // Alternatives
       const altItems = brickognizeResult.slice(1, 3);
       const alternatives = await Promise.all(altItems.map(async (item) => {
-        const altIsMinifig = (item.category || '').toLowerCase().includes('minifig') ||
-                             (item.id || '').startsWith('fig-');
+        const altIsFig = isMinifigId(item.id) ||
+                         (item.category || '').toLowerCase().includes('minifig');
         const altConf = scoreToConfidence(item.score);
-        if (altIsMinifig) {
+        if (altIsFig) {
           return await enrichMinifig(item.id, item.name, item.img_url, altConf);
         }
         return await enrichPart(item.id, item.name, item.img_url, altConf);
