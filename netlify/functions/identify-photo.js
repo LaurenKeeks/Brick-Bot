@@ -45,17 +45,25 @@ exports.handler = async (event) => {
     const imageBuffer = Buffer.from(imageBase64, 'base64');
     const ext = mediaType.includes('png') ? 'png' : 'jpg';
 
-    const form = new FormData();
-    form.append('query_image', imageBuffer, {
-      filename: 'photo.' + ext,
-      contentType: mediaType
-    });
+    // Build multipart body manually — the npm form-data package doesn't
+    // work with Node 18+ built-in fetch in Netlify's runtime
+    const boundary = '----BrickBotBoundary' + Date.now();
+    const bodyParts = [
+      '--' + boundary + '\r\n',
+      'Content-Disposition: form-data; name="query_image"; filename="photo.' + ext + '"\r\n',
+      'Content-Type: ' + mediaType + '\r\n\r\n'
+    ];
+    const header = Buffer.from(bodyParts.join(''));
+    const footer = Buffer.from('\r\n--' + boundary + '--\r\n');
+    const multipartBody = Buffer.concat([header, imageBuffer, footer]);
 
-    console.log('[identify-photo] Calling Brickognize API...');
+    console.log('[identify-photo] Calling Brickognize API, body size:', multipartBody.length);
     const brickognizeRes = await fetch('https://api.brickognize.com/predict/', {
       method: 'POST',
-      body: form,
-      headers: form.getHeaders()
+      body: multipartBody,
+      headers: {
+        'Content-Type': 'multipart/form-data; boundary=' + boundary
+      }
     });
 
     console.log('[identify-photo] Brickognize status:', brickognizeRes.status);
