@@ -75,6 +75,7 @@
       // --- State ---
       var rbFigData = null; // Rebrickable minifig data if found
       var rbSets = [];      // Sets this minifig appears in
+      var rbTotalSets = 0;  // Total sets count for "Show all"
       var bricklinkUrl = 'https://www.bricklink.com/v2/search.page?q=' + encodeURIComponent(figName);
 
       // --- Render the page ---
@@ -116,8 +117,8 @@
         // Sets
         if (rbSets.length > 0) {
           html += '<section class="sets-section">';
-          html += '  <h2 class="section-title">Found in ' + rbSets.length + ' sets</h2>';
-          html += '  <div class="sets-grid">';
+          html += '  <h2 class="section-title">Found in ' + (rbTotalSets || rbSets.length) + ' sets</h2>';
+          html += '  <div class="sets-grid" id="fig-sets-grid">';
           rbSets.forEach(function (s) {
             var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
             html += '<a class="set-card" href="' + setUrl + '" target="_blank" rel="noopener">';
@@ -131,6 +132,25 @@
             html += '</a>';
           });
           html += '  </div>';
+          if (rbTotalSets > 12) {
+            html += '<div class="sets-expand-wrap">';
+            html += '  <button class="sets-expand-btn" id="fig-show-all-sets">Show all ' + rbTotalSets + ' sets</button>';
+            html += '</div>';
+          }
+          html += '</section>';
+        } else if (rbFigData) {
+          // Rebrickable found the minifig but no sets
+          html += '<section class="sets-section">';
+          html += '  <h2 class="section-title">Sets</h2>';
+          html += '  <p style="text-align:center;color:var(--muted-gray);padding:20px;">No sets found for this minifigure on Rebrickable.</p>';
+          html += '  <div style="text-align:center;"><a class="buy-btn buy-btn--blue" href="' + bricklinkUrl + '" target="_blank" rel="noopener" style="display:inline-block;">Search BrickLink</a></div>';
+          html += '</section>';
+        } else {
+          // Rebrickable didn't find the minifig at all
+          html += '<section class="sets-section">';
+          html += '  <h2 class="section-title">Sets</h2>';
+          html += '  <p style="text-align:center;color:var(--muted-gray);padding:20px;">BrickBot couldn\u2019t find this minifigure on Rebrickable. Try searching BrickLink instead.</p>';
+          html += '  <div style="text-align:center;"><a class="buy-btn buy-btn--blue" href="' + bricklinkUrl + '" target="_blank" rel="noopener" style="display:inline-block;">Search BrickLink</a></div>';
           html += '</section>';
         }
 
@@ -241,24 +261,80 @@
       // --- Load data ---
       BrickBotUI.showLoading(page);
 
-      // Try to find this minifig on Rebrickable by name
-      fetch('/api/search-minifig?q=' + encodeURIComponent(figName))
-        .then(function (res) { return res.ok ? res.json() : null; })
-        .then(function (data) {
-          if (data && data.results && data.results.length > 0) {
-            rbFigData = data.results[0];
-
-            // Fetch sets for this minifig
-            return BrickBotAPI.getMinifig(rbFigData.set_num).then(function (fullData) {
-              rbSets = fullData.sets || [];
-              if (fullData.set_img_url) rbFigData.set_img_url = rbFigData.set_img_url || fullData.set_img_url;
-            }).catch(function () {});
-          }
-        })
-        .catch(function () {})
-        .then(function () {
-          renderPage();
+      // Helper: load full minifig data + sets from a known fig number
+      function loadMinifigByNum(num) {
+        return BrickBotAPI.getMinifig(num).then(function (fullData) {
+          rbFigData = fullData;
+          rbSets = fullData.sets || [];
+          rbTotalSets = fullData.totalSets || rbSets.length;
         });
+      }
+
+      // Step 1: Try direct lookup by fig number if we have one
+      var loadPromise;
+      if (figNum) {
+        loadPromise = loadMinifigByNum(figNum).catch(function () {
+          // Direct lookup failed — try searching by name
+          return fetch('/api/search-minifig?q=' + encodeURIComponent(figName))
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+              if (data && data.results && data.results.length > 0) {
+                return loadMinifigByNum(data.results[0].set_num);
+              }
+            })
+            .catch(function () {});
+        });
+      } else {
+        // No fig number — search by name only
+        loadPromise = fetch('/api/search-minifig?q=' + encodeURIComponent(figName))
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (data && data.results && data.results.length > 0) {
+              return loadMinifigByNum(data.results[0].set_num);
+            }
+          })
+          .catch(function () {});
+      }
+
+      loadPromise.then(function () {
+        renderPage();
+
+        // Wire up "Show all sets" button if present
+        var showAllBtn = document.getElementById('fig-show-all-sets');
+        if (showAllBtn && rbFigData) {
+          showAllBtn.addEventListener('click', function () {
+            showAllBtn.textContent = 'Loading...';
+            showAllBtn.disabled = true;
+            var allFigNum = rbFigData.set_num || figNum;
+            fetch('/api/get-minifig?fig=' + encodeURIComponent(allFigNum) + '&page_size=200')
+              .then(function (res) { return res.ok ? res.json() : null; })
+              .then(function (data) {
+                if (data && data.sets) {
+                  var grid = document.getElementById('fig-sets-grid');
+                  grid.innerHTML = '';
+                  data.sets.forEach(function (s) {
+                    var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
+                    var card = document.createElement('a');
+                    card.className = 'set-card';
+                    card.href = setUrl;
+                    card.target = '_blank';
+                    card.rel = 'noopener';
+                    card.innerHTML =
+                      (s.set_img_url ? '<img class="set-card-img" src="' + s.set_img_url + '" alt="' + BrickBotUI.escapeHtml(s.name) + '">' : '<div class="set-card-img-placeholder">No image</div>') +
+                      '<div class="set-card-name">' + BrickBotUI.escapeHtml(s.name) + '</div>' +
+                      '<div class="set-card-meta">' + (s.year || '') + ' &middot; ' + (s.num_parts || '?') + ' pcs</div>';
+                    grid.appendChild(card);
+                  });
+                  showAllBtn.parentElement.remove();
+                }
+              })
+              .catch(function () {
+                showAllBtn.textContent = 'Failed \u2014 try again';
+                showAllBtn.disabled = false;
+              });
+          });
+        }
+      });
 
     })();
   </script>

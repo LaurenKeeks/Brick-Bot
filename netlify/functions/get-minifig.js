@@ -23,14 +23,17 @@ exports.handler = async (event) => {
 
     // Also fetch sets this minifig appears in
     let sets = [];
+    let totalSets = 0;
+    const pageSize = event.queryStringParameters.page_size || '12';
     try {
       const setsRes = await fetch(
-        `${base}/minifigs/${encodeURIComponent(figNum)}/sets/?page_size=12`,
+        `${base}/minifigs/${encodeURIComponent(figNum)}/sets/?page_size=${pageSize}`,
         { headers }
       );
       if (setsRes.ok) {
         const setsData = await setsRes.json();
         sets = setsData.results || [];
+        totalSets = setsData.count || sets.length;
       }
     } catch (e) {
       // sets fetch failed, continue without
@@ -39,7 +42,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, sets })
+      body: JSON.stringify({ ...data, sets, totalSets })
     };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
