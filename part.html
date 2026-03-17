@@ -128,6 +128,33 @@
             html += '</section>';
           }
 
+          // BrickBot Build Ideas for minifig
+          html += '<section class="ideas-section">';
+          html += '  <div class="ideas-card">';
+          html += '    <div class="ideas-header">';
+          html += '      <span class="ideas-icon">🤖</span>';
+          html += '      <h2 class="ideas-title">BrickBot says...</h2>';
+          html += '    </div>';
+          html += '    <div class="ideas-controls">';
+          html += '      <label class="ideas-label">Age group</label>';
+          html += '      <div class="age-group-btns" id="minifig-age-btns">';
+          html += '        <button class="age-btn" data-age="Ages 5-8">Ages 5\u20138</button>';
+          html += '        <button class="age-btn active" data-age="Ages 9-12">Ages 9\u201312</button>';
+          html += '        <button class="age-btn" data-age="Ages 13+">Ages 13+</button>';
+          html += '      </div>';
+          html += '      <label class="ideas-label">Topics</label>';
+          html += '      <div class="topic-chips" id="minifig-topic-chips">';
+          var minifigTopics = ['Animals', 'Vehicles', 'Buildings', 'Space', 'Fantasy', 'Robots', 'Nature', 'Food', 'Sports'];
+          minifigTopics.forEach(function (t) {
+            html += '<button class="topic-chip" data-topic="' + t + '">' + t + '</button>';
+          });
+          html += '      </div>';
+          html += '      <button class="get-ideas-btn" id="minifig-ideas-btn">Get ideas \u2192</button>';
+          html += '    </div>';
+          html += '    <div class="ideas-results" id="minifig-ideas-results"></div>';
+          html += '  </div>';
+          html += '</section>';
+
           // Buy links
           html += '<section class="buy-links" style="display:flex;">';
           html += '  <a class="buy-btn buy-btn--blue" href="https://www.bricklink.com/v2/catalog/catalogitem.page?M=' + encodeURIComponent(fig.set_num || partNum) + '" target="_blank" rel="noopener">Find on BrickLink</a>';
@@ -139,6 +166,72 @@
           // Hide the static buy links section
           var staticBuyLinks = document.getElementById('buy-links');
           if (staticBuyLinks) staticBuyLinks.style.display = 'none';
+
+          // --- Wire up minifig ideas ---
+          var minifigAge = 'Ages 9-12';
+          var minifigSelectedTopics = [];
+
+          document.querySelectorAll('#minifig-age-btns .age-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              document.querySelectorAll('#minifig-age-btns .age-btn').forEach(function (b) { b.classList.remove('active'); });
+              btn.classList.add('active');
+              minifigAge = btn.getAttribute('data-age');
+            });
+          });
+
+          document.querySelectorAll('#minifig-topic-chips .topic-chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+              chip.classList.toggle('active');
+              var topic = chip.getAttribute('data-topic');
+              if (chip.classList.contains('active')) {
+                minifigSelectedTopics.push(topic);
+              } else {
+                minifigSelectedTopics = minifigSelectedTopics.filter(function (t) { return t !== topic; });
+              }
+            });
+          });
+
+          document.getElementById('minifig-ideas-btn').addEventListener('click', function () {
+            var btn = document.getElementById('minifig-ideas-btn');
+            var resultsDiv = document.getElementById('minifig-ideas-results');
+            btn.disabled = true;
+            btn.textContent = 'Thinking...';
+            resultsDiv.innerHTML =
+              '<div class="ideas-loading">' +
+                '<div class="loading-spinner"></div>' +
+                '<p class="loading-text">BrickBot is thinking...</p>' +
+              '</div>';
+
+            BrickBotAPI.getIdeas(
+              fig.name, fig.set_num || partNum, 'Minifigure', minifigAge, minifigSelectedTopics, []
+            ).then(function (data) {
+              var ideas = BrickBotUI.parseIdeas(data.ideas);
+              if (ideas.length === 0) {
+                resultsDiv.innerHTML = '<p class="ideas-raw">' + BrickBotUI.escapeHtml(data.ideas) + '</p>';
+              } else {
+                var cardsHtml = '';
+                ideas.forEach(function (idea, i) {
+                  var badgeColor = BrickBotUI.difficultyColor(idea.difficulty);
+                  cardsHtml += '<div class="idea-card">';
+                  cardsHtml += '  <div class="idea-card-header">';
+                  cardsHtml += '    <span class="idea-number">IDEA ' + (i + 1) + '</span>';
+                  cardsHtml += '    <span class="idea-difficulty" style="background:' + badgeColor + ';">' + BrickBotUI.escapeHtml(idea.difficulty) + '</span>';
+                  cardsHtml += '  </div>';
+                  cardsHtml += '  <h3 class="idea-name">' + BrickBotUI.escapeHtml(idea.name) + '</h3>';
+                  cardsHtml += '  <p class="idea-desc">' + BrickBotUI.escapeHtml(idea.description) + '</p>';
+                  cardsHtml += '</div>';
+                });
+                resultsDiv.innerHTML = cardsHtml;
+              }
+              btn.disabled = false;
+              btn.textContent = 'Get ideas \u2192';
+            }).catch(function () {
+              resultsDiv.innerHTML = '<p class="ideas-error">BrickBot is taking a nap \u2014 try again in a second!</p>';
+              btn.disabled = false;
+              btn.textContent = 'Get ideas \u2192';
+            });
+          });
+
         }).catch(function () {
           BrickBotUI.showError(page, "BrickBot couldn\u2019t find that minifigure. Double-check the figure number or try a photo.");
         });
