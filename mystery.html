@@ -578,8 +578,19 @@
         return 'mystery-confidence--low';
       }
 
+      function isMinifigResult(data) {
+        return data.partType === 'minifig' ||
+          (data.partNumber && data.partNumber.indexOf('fig-') === 0);
+      }
+
+      function buildDetailUrl(data) {
+        var url = 'part.html?part=' + encodeURIComponent(data.partNumber);
+        if (isMinifigResult(data)) url += '&type=minifig';
+        return url;
+      }
+
       function showResults(data) {
-        var detailUrl = 'part.html?part=' + encodeURIComponent(data.partNumber);
+        var detailUrl = buildDetailUrl(data);
 
         // Auto-redirect for High or Medium confidence
         var conf = (data.confidence || '').toLowerCase();
@@ -590,16 +601,23 @@
 
         // Low confidence — show results for the user to choose
         var html = '';
+        var isFig = isMinifigResult(data);
 
-        // Top match card (image comes from Brickognize+Rebrickable enrichment)
+        // Top match card
         html += '<div class="mystery-match-card">';
         if (data.partImgUrl) {
           html += '  <img class="mystery-match-img" src="' + data.partImgUrl + '" alt="' + BrickBotUI.escapeHtml(data.partName) + '" onerror="this.style.background=\'#eee\'">';
         }
         html += '  <div class="mystery-match-info">';
         html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(data.partName) + '</div>';
-        html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(data.partNumber) + '</div>';
+        html += '    <div class="mystery-match-num">' + BrickBotUI.escapeHtml(data.partNumber) + '</div>';
         html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
+        if (isFig && data.theme) {
+          html += '    <span style="display:inline-block;margin-left:6px;font-size:11px;font-weight:700;background:var(--lego-blue);color:white;padding:2px 10px;border-radius:8px;">' + BrickBotUI.escapeHtml(data.theme) + '</span>';
+        }
+        if (isFig) {
+          html += '    <span style="display:inline-block;margin-left:6px;font-size:11px;font-weight:700;background:var(--lego-yellow);color:var(--dark-navy);padding:2px 10px;border-radius:8px;">Minifigure</span>';
+        }
         html += '  </div>';
         html += '</div>';
 
@@ -607,20 +625,24 @@
         if (data.alternatives && data.alternatives.length > 0) {
           html += '<div class="mystery-alt-label">Could also be...</div>';
           data.alternatives.forEach(function (alt) {
-            var altUrl = 'part.html?part=' + encodeURIComponent(alt.partNumber);
+            var altUrl = buildDetailUrl(alt);
             html += '<a class="mystery-alt-card" href="' + altUrl + '">';
             if (alt.partImgUrl) {
               html += '  <img class="mystery-alt-img" src="' + alt.partImgUrl + '" alt="' + BrickBotUI.escapeHtml(alt.partName) + '" onerror="this.style.background=\'#eee\'">';
             }
             html += '  <div>';
             html += '    <div class="mystery-alt-name">' + BrickBotUI.escapeHtml(alt.partName) + '</div>';
-            html += '    <div class="mystery-alt-num">#' + BrickBotUI.escapeHtml(alt.partNumber) + '</div>';
+            html += '    <div class="mystery-alt-num">' + BrickBotUI.escapeHtml(alt.partNumber) + '</div>';
             html += '  </div>';
             html += '</a>';
           });
         }
 
-        html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+        if (isFig) {
+          html += '<a class="mystery-cta" href="' + detailUrl + '">View sets this minifig appears in \u2192</a>';
+        } else {
+          html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+        }
         html += '<button class="mystery-retry-btn" id="results-try-again" style="display:block;width:100%;max-width:300px;margin:16px auto 0;padding:12px;border-radius:12px;border:2px solid #ddd;background:transparent;color:var(--muted-gray);font-weight:700;font-size:14px;cursor:pointer;font-family:Nunito,sans-serif;">Try Another Piece</button>';
         resultsInner.innerHTML = html;
         resultsSection.style.display = 'block';
