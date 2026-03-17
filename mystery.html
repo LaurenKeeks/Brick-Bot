@@ -75,104 +75,6 @@
       margin-bottom: 12px;
     }
 
-    /* Multi-photo staging area */
-    .mystery-staged {
-      max-width: 500px;
-      margin: 20px auto 0;
-      display: none;
-    }
-    .mystery-staged-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--dark-navy);
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .mystery-staged-thumbs {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    .mystery-staged-thumb-wrap {
-      position: relative;
-    }
-    .mystery-staged-thumb {
-      width: 90px;
-      height: 90px;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 2px solid #ddd;
-    }
-    .mystery-staged-remove {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 22px;
-      height: 22px;
-      background: var(--lego-red);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 13px;
-      line-height: 22px;
-      text-align: center;
-      cursor: pointer;
-      font-family: 'Nunito', sans-serif;
-      padding: 0;
-    }
-    .mystery-staged-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-    .mystery-staged-add-btn {
-      background: transparent;
-      color: var(--dark-navy);
-      font-weight: 700;
-      font-size: 14px;
-      padding: 10px 20px;
-      border-radius: 12px;
-      border: 2px solid #ddd;
-      cursor: pointer;
-      font-family: 'Nunito', sans-serif;
-      transition: border-color 0.2s;
-    }
-    .mystery-staged-add-btn:hover {
-      border-color: var(--lego-yellow);
-    }
-    .mystery-staged-add-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .mystery-identify-btn {
-      background: var(--lego-yellow);
-      color: var(--dark-navy);
-      font-weight: 700;
-      font-size: 15px;
-      padding: 10px 28px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-family: 'Nunito', sans-serif;
-      transition: background 0.2s;
-    }
-    .mystery-identify-btn:hover {
-      background: var(--lego-red);
-      color: var(--white);
-    }
-    .mystery-identify-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .mystery-staged-hint {
-      font-size: 12px;
-      color: var(--muted-gray);
-      text-align: center;
-      margin-top: 10px;
-    }
-
     .mystery-results {
       background: var(--white);
       padding: 40px 24px;
@@ -428,17 +330,6 @@
       </div>
     </div>
 
-    <!-- Staged photos -->
-    <div class="mystery-staged" id="mystery-staged">
-      <div class="mystery-staged-label" id="staged-label">1 of 3 photos</div>
-      <div class="mystery-staged-thumbs" id="staged-thumbs"></div>
-      <div class="mystery-staged-actions">
-        <button class="mystery-staged-add-btn" id="staged-add-btn">+ Add another angle</button>
-        <button class="mystery-identify-btn" id="staged-identify-btn">Identify piece</button>
-      </div>
-      <p class="mystery-staged-hint">Tip: Multiple angles help BrickBot identify tricky pieces</p>
-    </div>
-
     <div class="mystery-preview" id="mystery-preview" style="display:none;">
       <img id="preview-img" src="" alt="Your photo">
     </div>
@@ -458,7 +349,12 @@
 
   <!-- Error -->
   <div class="mystery-error" id="mystery-error">
-    BrickBot isn't sure about this one! Try a clearer photo with the piece on a plain white surface. Or check the part number stamped on the bottom of the piece and type it in the search bar.
+    BrickBot isn't sure about this one! Try a clearer photo on a plain white surface, or check the part number stamped on the bottom of the piece.
+  </div>
+
+  <!-- Disclaimer -->
+  <div style="max-width:500px;margin:0 auto;padding:12px 24px;text-align:center;">
+    <p style="font-size:12px;color:var(--muted-gray);line-height:1.5;">AI identification is approximate — check the part number on the underside of the piece to be sure</p>
   </div>
 
   <!-- Footer -->
@@ -498,15 +394,6 @@
       var resultsInner = document.getElementById('mystery-results-inner');
       var errorSection = document.getElementById('mystery-error');
 
-      // Staged photos state
-      var stagedPhotos = []; // array of { dataUrl, mediaType }
-      var MAX_PHOTOS = 3;
-      var stagedSection = document.getElementById('mystery-staged');
-      var stagedThumbs = document.getElementById('staged-thumbs');
-      var stagedLabel = document.getElementById('staged-label');
-      var stagedAddBtn = document.getElementById('staged-add-btn');
-      var stagedIdentifyBtn = document.getElementById('staged-identify-btn');
-
       // Webcam refs
       var webcamBtn = document.getElementById('webcam-btn');
       var webcamArea = document.getElementById('webcam-area');
@@ -516,70 +403,20 @@
       var stopWebcamBtn = document.getElementById('stop-webcam-btn');
       var webcamStream = null;
 
-      // --- Staged photos UI ---
-      function renderStaged() {
-        stagedThumbs.innerHTML = '';
-        stagedPhotos.forEach(function (photo, i) {
-          var wrap = document.createElement('div');
-          wrap.className = 'mystery-staged-thumb-wrap';
-          var img = document.createElement('img');
-          img.className = 'mystery-staged-thumb';
-          img.src = photo.dataUrl;
-          img.alt = 'Photo ' + (i + 1);
-          var removeBtn = document.createElement('button');
-          removeBtn.className = 'mystery-staged-remove';
-          removeBtn.innerHTML = '&times;';
-          removeBtn.addEventListener('click', function () {
-            stagedPhotos.splice(i, 1);
-            renderStaged();
-          });
-          wrap.appendChild(img);
-          wrap.appendChild(removeBtn);
-          stagedThumbs.appendChild(wrap);
-        });
-
-        stagedLabel.textContent = stagedPhotos.length + ' of ' + MAX_PHOTOS + ' photo' + (stagedPhotos.length === 1 ? '' : 's');
-        stagedAddBtn.disabled = stagedPhotos.length >= MAX_PHOTOS;
-        stagedAddBtn.textContent = stagedPhotos.length >= MAX_PHOTOS ? 'Max photos reached' : '+ Add another angle';
-        stagedSection.style.display = stagedPhotos.length > 0 ? 'block' : 'none';
-      }
-
-      function stagePhoto(dataUrl, mediaType) {
-        if (stagedPhotos.length >= MAX_PHOTOS) return;
-        stagedPhotos.push({ dataUrl: dataUrl, mediaType: mediaType });
-        resultsSection.style.display = 'none';
-        errorSection.style.display = 'none';
-        renderStaged();
-      }
-
-      // "Add another angle" re-opens the upload/webcam options
-      stagedAddBtn.addEventListener('click', function () {
-        photoInput.click();
-      });
-
-      // "Identify piece" sends all staged photos to Claude
-      stagedIdentifyBtn.addEventListener('click', function () {
-        if (stagedPhotos.length === 0) return;
-        sendStagedPhotos();
-      });
-
-      function sendStagedPhotos() {
-        // Show first photo as preview
-        previewImg.src = stagedPhotos[0].dataUrl;
+      // --- Send image to Brickognize via Netlify function ---
+      function sendToIdentify(dataUrl, mediaType) {
+        previewImg.src = dataUrl;
         previewSection.style.display = 'block';
         loadingSection.style.display = 'block';
         resultsSection.style.display = 'none';
         errorSection.style.display = 'none';
-        stagedSection.style.display = 'none';
 
-        var images = stagedPhotos.map(function (p) {
-          return { base64: p.dataUrl.split(',')[1], mediaType: p.mediaType };
-        });
+        var base64 = dataUrl.split(',')[1];
 
         fetch('/api/identify-photo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images: images })
+          body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
         })
         .then(function (res) {
           if (!res.ok) throw new Error('Failed');
@@ -632,7 +469,7 @@
       function processFile(file) {
         var reader = new FileReader();
         reader.onload = function () {
-          stagePhoto(reader.result, file.type || 'image/jpeg');
+          sendToIdentify(reader.result, file.type || 'image/jpeg');
         };
         reader.readAsDataURL(file);
       }
@@ -672,7 +509,7 @@
         var vh = webcamVideo.videoHeight || webcamVideo.clientHeight || 480;
 
         if (vw === 0 || vh === 0) {
-          alert('Camera is still starting up — try again in a moment.');
+          alert('Camera is still starting up \u2014 try again in a moment.');
           return;
         }
 
@@ -682,19 +519,14 @@
         ctx.drawImage(webcamVideo, 0, 0, vw, vh);
 
         var dataUrl = webcamCanvas.toDataURL('image/jpeg', 0.85);
+        stopWebcam();
 
         if (!dataUrl || dataUrl.length < 100) {
-          alert('Could not capture image — please try again.');
+          alert('Could not capture image \u2014 please try again.');
           return;
         }
 
-        // Stage the photo but keep webcam open for more captures
-        stagePhoto(dataUrl, 'image/jpeg');
-
-        // If max photos reached, close webcam
-        if (stagedPhotos.length >= MAX_PHOTOS) {
-          stopWebcam();
-        }
+        sendToIdentify(dataUrl, 'image/jpeg');
       });
 
       stopWebcamBtn.addEventListener('click', stopWebcam);
@@ -716,106 +548,52 @@
         return 'mystery-confidence--low';
       }
 
-      function isMinifig(data) {
-        if (data.partType === 'minifig') return true;
-        if (data.partNumber && data.partNumber.indexOf('fig-') === 0) return true;
-        var name = (data.partName || '').toLowerCase();
-        return name.indexOf('minifigure') !== -1 || name.indexOf('minifig') !== -1;
-      }
-
-      function buildPartUrl(data) {
-        var url = 'part.html?part=' + encodeURIComponent(data.partNumber);
-        if (isMinifig(data)) url += '&type=minifig';
-        return url;
-      }
-
       function showResults(data) {
+        var detailUrl = 'part.html?part=' + encodeURIComponent(data.partNumber);
+
         // Auto-redirect for High or Medium confidence
         var conf = (data.confidence || '').toLowerCase();
         if (conf === 'high' || conf === 'medium') {
-          window.location.href = buildPartUrl(data);
+          window.location.href = detailUrl;
           return;
         }
 
         // Low confidence — show results for the user to choose
-        // Fetch the top match from Rebrickable (use minifig API if needed)
-        var fetchPromise = isMinifig(data)
-          ? BrickBotAPI.getMinifig(data.partNumber).then(function (fig) {
-              return { name: fig.name, part_num: fig.set_num || data.partNumber, part_img_url: fig.set_img_url || '' };
-            })
-          : BrickBotAPI.getPart(data.partNumber);
+        var html = '';
 
-        fetchPromise.then(function (part) {
-          var html = '';
-          var detailUrl = buildPartUrl(data);
+        // Top match card (image comes from Brickognize+Rebrickable enrichment)
+        html += '<div class="mystery-match-card">';
+        if (data.partImgUrl) {
+          html += '  <img class="mystery-match-img" src="' + data.partImgUrl + '" alt="' + BrickBotUI.escapeHtml(data.partName) + '" onerror="this.style.background=\'#eee\'">';
+        }
+        html += '  <div class="mystery-match-info">';
+        html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(data.partName) + '</div>';
+        html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(data.partNumber) + '</div>';
+        html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
+        html += '  </div>';
+        html += '</div>';
 
-          // Top match card
-          html += '<div class="mystery-match-card">';
-          html += '  <img class="mystery-match-img" src="' + (part.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(part.name) + '" onerror="this.style.background=\'#eee\'">';
-          html += '  <div class="mystery-match-info">';
-          html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(part.name) + '</div>';
-          html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(part.part_num) + '</div>';
-          html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
-          html += '  </div>';
-          html += '</div>';
+        // Alternatives
+        if (data.alternatives && data.alternatives.length > 0) {
+          html += '<div class="mystery-alt-label">Could also be...</div>';
+          data.alternatives.forEach(function (alt) {
+            var altUrl = 'part.html?part=' + encodeURIComponent(alt.partNumber);
+            html += '<a class="mystery-alt-card" href="' + altUrl + '">';
+            if (alt.partImgUrl) {
+              html += '  <img class="mystery-alt-img" src="' + alt.partImgUrl + '" alt="' + BrickBotUI.escapeHtml(alt.partName) + '" onerror="this.style.background=\'#eee\'">';
+            }
+            html += '  <div>';
+            html += '    <div class="mystery-alt-name">' + BrickBotUI.escapeHtml(alt.partName) + '</div>';
+            html += '    <div class="mystery-alt-num">#' + BrickBotUI.escapeHtml(alt.partNumber) + '</div>';
+            html += '  </div>';
+            html += '</a>';
+          });
+        }
 
-          // Alternatives
-          if (data.alternatives && data.alternatives.length > 0) {
-            html += '<div class="mystery-alt-label">Could also be...</div>';
-
-            var altPromises = data.alternatives.map(function (alt) {
-              if (alt.partType === 'minifig' || (alt.partNumber && alt.partNumber.indexOf('fig-') === 0)) {
-                return BrickBotAPI.getMinifig(alt.partNumber).then(function (fig) {
-                  return { name: fig.name, part_num: fig.set_num || alt.partNumber, part_img_url: fig.set_img_url || '' };
-                }).catch(function () {
-                  return { name: alt.partName, part_num: alt.partNumber, part_img_url: '' };
-                });
-              }
-              return BrickBotAPI.getPart(alt.partNumber).catch(function () {
-                return { name: alt.partName, part_num: alt.partNumber, part_img_url: '' };
-              });
-            });
-
-            Promise.all(altPromises).then(function (altParts) {
-              data.alternatives.forEach(function (alt, idx) {
-                var altPart = altParts[idx];
-                var altUrl = 'part.html?part=' + encodeURIComponent(altPart.part_num);
-                if (alt.partType === 'minifig' || (alt.partNumber && alt.partNumber.indexOf('fig-') === 0)) {
-                  altUrl += '&type=minifig';
-                }
-                html += '<a class="mystery-alt-card" href="' + altUrl + '">';
-                html += '  <img class="mystery-alt-img" src="' + (altPart.part_img_url || '') + '" alt="' + BrickBotUI.escapeHtml(altPart.name) + '" onerror="this.style.background=\'#eee\'">';
-                html += '  <div>';
-                html += '    <div class="mystery-alt-name">' + BrickBotUI.escapeHtml(altPart.name) + '</div>';
-                html += '    <div class="mystery-alt-num">#' + BrickBotUI.escapeHtml(altPart.part_num) + '</div>';
-                html += '  </div>';
-                html += '</a>';
-              });
-
-              html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
-              resultsInner.innerHTML = html;
-              resultsSection.style.display = 'block';
-              resultsSection.scrollIntoView({ behavior: 'smooth' });
-            });
-          } else {
-            html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
-            resultsInner.innerHTML = html;
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-          }
-        }).catch(function () {
-          var html = '';
-          html += '<div class="mystery-match-card">';
-          html += '  <div class="mystery-match-info">';
-          html += '    <div class="mystery-match-name">' + BrickBotUI.escapeHtml(data.partName || 'Unknown') + '</div>';
-          html += '    <div class="mystery-match-num">#' + BrickBotUI.escapeHtml(data.partNumber) + '</div>';
-          html += '    <span class="mystery-confidence ' + confidenceClass(data.confidence) + '">' + BrickBotUI.escapeHtml(data.confidence) + ' confidence</span>';
-          html += '  </div>';
-          html += '</div>';
-          html += '<a class="mystery-cta" href="' + buildPartUrl(data) + '">View full details \u2192</a>';
-          resultsInner.innerHTML = html;
-          resultsSection.style.display = 'block';
-        });
+        html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
+        resultsInner.innerHTML = html;
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
       }
 
     })();
