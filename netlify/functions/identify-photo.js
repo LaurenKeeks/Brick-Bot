@@ -37,16 +37,18 @@ exports.handler = async (event) => {
     return 'Low';
   }
 
-  // Helper: enrich a minifig ID via Rebrickable
+  // Helper: enrich a minifig ID via Rebrickable, with fallback to parts
   async function enrichMinifig(figNum, name, imgUrl, confidence) {
     let figData = null;
-    // Try direct lookup first
-    try {
-      const res = await fetch(`${rbBase}/minifigs/${encodeURIComponent(figNum)}/`, { headers: rbHeaders });
-      if (res.ok) figData = await res.json();
-    } catch (e) {}
+    // Try direct minifig lookup
+    if (figNum) {
+      try {
+        const res = await fetch(`${rbBase}/minifigs/${encodeURIComponent(figNum)}/`, { headers: rbHeaders });
+        if (res.ok) figData = await res.json();
+      } catch (e) {}
+    }
 
-    // If direct lookup failed and we have a name, search by name
+    // If direct lookup failed, search minifigs by name
     if (!figData && name) {
       try {
         const searchRes = await fetch(`${rbBase}/minifigs/?search=${encodeURIComponent(name)}&page_size=1`, { headers: rbHeaders });
@@ -70,6 +72,24 @@ exports.handler = async (event) => {
       };
     }
 
+    // FALLBACK: minifig lookup failed — maybe it's actually a part
+    console.log('[identify-photo] Minifig lookup failed for', figNum || name, '— trying as a part');
+    if (figNum) {
+      try {
+        const partRes = await fetch(`${rbBase}/parts/${encodeURIComponent(figNum)}/`, { headers: rbHeaders });
+        if (partRes.ok) {
+          const partData = await partRes.json();
+          return {
+            partType: 'part',
+            partName: partData.name || name,
+            partNumber: partData.part_num || figNum,
+            partImgUrl: partData.part_img_url || imgUrl || '',
+            confidence
+          };
+        }
+      } catch (e) {}
+    }
+
     return {
       partType: 'minifig',
       partName: name || figNum,
@@ -79,21 +99,40 @@ exports.handler = async (event) => {
     };
   }
 
-  // Helper: enrich a part ID via Rebrickable
+  // Helper: enrich a part ID via Rebrickable, with fallback to minifigs
   async function enrichPart(partNum, name, imgUrl, confidence) {
-    try {
-      const res = await fetch(`${rbBase}/parts/${encodeURIComponent(partNum)}/`, { headers: rbHeaders });
-      if (res.ok) {
-        const data = await res.json();
-        return {
-          partType: 'part',
-          partName: data.name || name,
-          partNumber: data.part_num || partNum,
-          partImgUrl: data.part_img_url || imgUrl || '',
-          confidence
-        };
-      }
-    } catch (e) {}
+    if (partNum) {
+      try {
+        const res = await fetch(`${rbBase}/parts/${encodeURIComponent(partNum)}/`, { headers: rbHeaders });
+        if (res.ok) {
+          const data = await res.json();
+          return {
+            partType: 'part',
+            partName: data.name || name,
+            partNumber: data.part_num || partNum,
+            partImgUrl: data.part_img_url || imgUrl || '',
+            confidence
+          };
+        }
+      } catch (e) {}
+
+      // FALLBACK: part lookup failed — maybe it's actually a minifig
+      console.log('[identify-photo] Part lookup failed for', partNum, '— trying as a minifig');
+      try {
+        const figRes = await fetch(`${rbBase}/minifigs/${encodeURIComponent(partNum)}/`, { headers: rbHeaders });
+        if (figRes.ok) {
+          const figData = await figRes.json();
+          return {
+            partType: 'minifig',
+            partName: figData.name || name,
+            partNumber: figData.set_num || partNum,
+            partImgUrl: figData.set_img_url || imgUrl || '',
+            numParts: figData.num_parts || 0,
+            confidence
+          };
+        }
+      } catch (e) {}
+    }
     return { partType: 'part', partName: name || partNum, partNumber: partNum, partImgUrl: imgUrl || '', confidence };
   }
 
@@ -206,12 +245,17 @@ exports.handler = async (event) => {
           { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
           {
             type: 'text',
-            text: `You are a LEGO expert. Look at this image carefully. First determine: is this a LEGO minifigure (a small humanoid figure with a head, torso, legs, and sometimes accessories), or is it a regular LEGO part/brick?
+            text: `You are a LEGO identification expert. Look at this image very carefully before deciding the type.
 
-If it's a MINIFIGURE, return this JSON:
-{ "type": "minifig", "figName": "descriptive name e.g. Police Officer", "figNum": "fig number if known e.g. fig-000001 or empty string", "theme": "LEGO theme e.g. City, Star Wars", "confidence": "High/Medium/Low", "description": "one sentence", "alternatives": [{"figName": "...", "figNum": "..."}] }
+TYPE RULES — read these carefully:
+A MINIFIGURE has ALL of these: a humanoid body shape, a separate round head piece, a torso/upper body, and a leg piece. It looks like a tiny LEGO person. If you do not see a small humanoid LEGO figure, it is NOT a minifig.
+A PART is EVERYTHING else — bricks, plates, slopes, tiles, wheels, weapons, tools, animals, vehicles, trees, flowers, doors, windows, or any non-humanoid piece. Even minifigure accessories like swords, hats, hair pieces, shields, or capes are PARTS, not minifigs.
+IMPORTANT: Only return "type": "minifig" if you clearly see a complete or nearly-complete LEGO humanoid figure with a head, torso, and legs. When in doubt, return "type": "part". Most LEGO pieces are parts, not minifigs.
 
-If it's a REGULAR PART, return this JSON:
+If it's a MINIFIGURE (you see a complete humanoid figure), return:
+{ "type": "minifig", "figName": "descriptive name", "figNum": "", "theme": "LEGO theme", "confidence": "High/Medium/Low", "description": "one sentence", "alternatives": [{"figName": "...", "figNum": "..."}] }
+
+If it's a PART (anything else), return:
 { "type": "part", "partName": "exact name e.g. Brick 2 x 4", "partNumber": "part number e.g. 3001", "confidence": "High/Medium/Low", "description": "one sentence", "alternatives": [{"partName": "...", "partNumber": "..."}] }
 
 You MUST always return one of these two JSON formats. Never refuse. If uncertain, give your best guess with Low confidence. Return ONLY JSON with no other text.`
