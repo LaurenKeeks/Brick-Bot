@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrickBot — Minifigure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="bench.html" class="nav-link nav-link-bench">My Bench<span class="bench-badge" id="bench-badge"></span></a>
+        <a href="mystery.html" class="nav-link">Photo ID</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="part-page" id="minifig-page">
+    <!-- Populated by JS -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">🤖</span>
+        <span class="logo-text">BrickBot</span>
+      </div>
+      <p class="footer-credit">Built by Malakai</p>
+      <p class="footer-disclaimer">BrickBot is not affiliated with The LEGO Group&reg;</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var params = new URLSearchParams(window.location.search);
+      var figName = params.get('fig') || '';
+      var figImg = params.get('img') || '';
+      var figNum = params.get('num') || '';
+      var page = document.getElementById('minifig-page');
+
+      if (!figName) {
+        BrickBotUI.showError(page, 'No minifigure name provided. Go back and try again!');
+        return;
+      }
+
+      document.title = 'BrickBot — ' + figName;
+
+      // Bench badge
+      try {
+        var pieces = JSON.parse(localStorage.getItem('brickbot_bench_pieces') || '[]');
+        var badge = document.getElementById('bench-badge');
+        if (badge && pieces.length > 0) {
+          badge.textContent = pieces.length;
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) {}
+
+      // --- State ---
+      var rbFigData = null; // Rebrickable minifig data if found
+      var rbSets = [];      // Sets this minifig appears in
+      var bricklinkUrl = 'https://www.bricklink.com/v2/search.page?q=' + encodeURIComponent(figName);
+
+      // --- Render the page ---
+      function renderPage() {
+        var displayName = rbFigData ? rbFigData.name : figName;
+        var displayImg = rbFigData ? (rbFigData.set_img_url || figImg) : figImg;
+        var displayNum = rbFigData ? rbFigData.set_num : figNum;
+
+        var html = '';
+
+        // Header
+        html += '<section class="part-header">';
+        html += '  <div class="part-header-inner">';
+        html += '    <div class="part-image-wrap">';
+        if (displayImg) {
+          html += '    <img class="part-image" src="' + displayImg + '" alt="' + BrickBotUI.escapeHtml(displayName) + '" onerror="this.style.display=\'none\'">';
+        } else {
+          html += '    <div class="part-image-placeholder" style="font-size:48px;">🤖</div>';
+        }
+        html += '    </div>';
+        html += '    <div class="part-info">';
+        html += '      <h1 class="part-name">' + BrickBotUI.escapeHtml(displayName) + '</h1>';
+        if (displayNum) {
+          html += '      <span class="part-number">' + BrickBotUI.escapeHtml(displayNum) + '</span>';
+        }
+        html += '      <div class="part-stats">';
+        html += '        <span class="stat-pill" style="background:var(--lego-blue);color:white;">Minifigure</span>';
+        if (rbFigData && rbFigData.num_parts) {
+          html += '        <span class="stat-pill">' + rbFigData.num_parts + ' parts</span>';
+        }
+        if (rbSets.length > 0) {
+          html += '        <span class="stat-pill">' + rbSets.length + ' sets</span>';
+        }
+        html += '      </div>';
+        html += '    </div>';
+        html += '  </div>';
+        html += '</section>';
+
+        // Sets
+        if (rbSets.length > 0) {
+          html += '<section class="sets-section">';
+          html += '  <h2 class="section-title">Found in ' + rbSets.length + ' sets</h2>';
+          html += '  <div class="sets-grid">';
+          rbSets.forEach(function (s) {
+            var setUrl = 'https://rebrickable.com/sets/' + s.set_num + '/';
+            html += '<a class="set-card" href="' + setUrl + '" target="_blank" rel="noopener">';
+            if (s.set_img_url) {
+              html += '  <img class="set-card-img" src="' + s.set_img_url + '" alt="' + BrickBotUI.escapeHtml(s.name) + '">';
+            } else {
+              html += '  <div class="set-card-img-placeholder">No image</div>';
+            }
+            html += '  <div class="set-card-name">' + BrickBotUI.escapeHtml(s.name) + '</div>';
+            html += '  <div class="set-card-meta">' + (s.year || '') + ' &middot; ' + (s.num_parts || '?') + ' pcs</div>';
+            html += '</a>';
+          });
+          html += '  </div>';
+          html += '</section>';
+        }
+
+        // BrickBot Build Ideas
+        html += '<section class="ideas-section">';
+        html += '  <div class="ideas-card">';
+        html += '    <div class="ideas-header">';
+        html += '      <span class="ideas-icon">🤖</span>';
+        html += '      <h2 class="ideas-title">BrickBot says...</h2>';
+        html += '    </div>';
+        html += '    <div class="ideas-controls">';
+        html += '      <label class="ideas-label">Age group</label>';
+        html += '      <div class="age-group-btns" id="fig-age-btns">';
+        html += '        <button class="age-btn" data-age="Ages 5-8">Ages 5\u20138</button>';
+        html += '        <button class="age-btn active" data-age="Ages 9-12">Ages 9\u201312</button>';
+        html += '        <button class="age-btn" data-age="Ages 13+">Ages 13+</button>';
+        html += '      </div>';
+        html += '      <label class="ideas-label">Topics</label>';
+        html += '      <div class="topic-chips" id="fig-topic-chips">';
+        ['Animals', 'Vehicles', 'Buildings', 'Space', 'Fantasy', 'Robots', 'Nature', 'Food', 'Sports'].forEach(function (t) {
+          html += '<button class="topic-chip" data-topic="' + t + '">' + t + '</button>';
+        });
+        html += '      </div>';
+        html += '      <button class="get-ideas-btn" id="fig-ideas-btn">Get ideas \u2192</button>';
+        html += '    </div>';
+        html += '    <div class="ideas-results" id="fig-ideas-results"></div>';
+        html += '  </div>';
+        html += '</section>';
+
+        // Buy links
+        html += '<section class="buy-links" style="display:flex;">';
+        if (displayNum) {
+          html += '  <a class="buy-btn buy-btn--blue" href="https://www.bricklink.com/v2/catalog/catalogitem.page?M=' + encodeURIComponent(displayNum) + '" target="_blank" rel="noopener">Find on BrickLink</a>';
+        } else {
+          html += '  <a class="buy-btn buy-btn--blue" href="' + bricklinkUrl + '" target="_blank" rel="noopener">Search BrickLink</a>';
+        }
+        html += '  <a class="buy-btn buy-btn--green" href="https://www.amazon.com/s?k=LEGO+' + encodeURIComponent(displayName) + '" target="_blank" rel="noopener">Search Amazon</a>';
+        html += '</section>';
+
+        page.innerHTML = html;
+
+        // --- Wire up ideas ---
+        var selectedAge = 'Ages 9-12';
+        var selectedTopics = [];
+
+        document.querySelectorAll('#fig-age-btns .age-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('#fig-age-btns .age-btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            selectedAge = btn.getAttribute('data-age');
+          });
+        });
+
+        document.querySelectorAll('#fig-topic-chips .topic-chip').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            chip.classList.toggle('active');
+            var topic = chip.getAttribute('data-topic');
+            if (chip.classList.contains('active')) {
+              selectedTopics.push(topic);
+            } else {
+              selectedTopics = selectedTopics.filter(function (t) { return t !== topic; });
+            }
+          });
+        });
+
+        document.getElementById('fig-ideas-btn').addEventListener('click', function () {
+          var btn = document.getElementById('fig-ideas-btn');
+          var resultsDiv = document.getElementById('fig-ideas-results');
+          btn.disabled = true;
+          btn.textContent = 'Thinking...';
+          resultsDiv.innerHTML =
+            '<div class="ideas-loading">' +
+              '<div class="loading-spinner"></div>' +
+              '<p class="loading-text">BrickBot is thinking...</p>' +
+            '</div>';
+
+          BrickBotAPI.getIdeas(
+            displayName, displayNum || figName, 'Minifigure', selectedAge, selectedTopics, []
+          ).then(function (data) {
+            var ideas = BrickBotUI.parseIdeas(data.ideas);
+            if (ideas.length === 0) {
+              resultsDiv.innerHTML = '<p class="ideas-raw">' + BrickBotUI.escapeHtml(data.ideas) + '</p>';
+            } else {
+              var cardsHtml = '';
+              ideas.forEach(function (idea, i) {
+                var badgeColor = BrickBotUI.difficultyColor(idea.difficulty);
+                cardsHtml += '<div class="idea-card">';
+                cardsHtml += '  <div class="idea-card-header">';
+                cardsHtml += '    <span class="idea-number">IDEA ' + (i + 1) + '</span>';
+                cardsHtml += '    <span class="idea-difficulty" style="background:' + badgeColor + ';">' + BrickBotUI.escapeHtml(idea.difficulty) + '</span>';
+                cardsHtml += '  </div>';
+                cardsHtml += '  <h3 class="idea-name">' + BrickBotUI.escapeHtml(idea.name) + '</h3>';
+                cardsHtml += '  <p class="idea-desc">' + BrickBotUI.escapeHtml(idea.description) + '</p>';
+                cardsHtml += '</div>';
+              });
+              resultsDiv.innerHTML = cardsHtml;
+            }
+            btn.disabled = false;
+            btn.textContent = 'Get ideas \u2192';
+          }).catch(function () {
+            resultsDiv.innerHTML = '<p class="ideas-error">BrickBot is taking a nap \u2014 try again in a second!</p>';
+            btn.disabled = false;
+            btn.textContent = 'Get ideas \u2192';
+          });
+        });
+      }
+
+      // --- Load data ---
+      BrickBotUI.showLoading(page);
+
+      // Try to find this minifig on Rebrickable by name
+      fetch('/api/search-minifig?q=' + encodeURIComponent(figName))
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (data && data.results && data.results.length > 0) {
+            rbFigData = data.results[0];
+
+            // Fetch sets for this minifig
+            return BrickBotAPI.getMinifig(rbFigData.set_num).then(function (fullData) {
+              rbSets = fullData.sets || [];
+              if (fullData.set_img_url) rbFigData.set_img_url = rbFigData.set_img_url || fullData.set_img_url;
+            }).catch(function () {});
+          }
+        })
+        .catch(function () {})
+        .then(function () {
+          renderPage();
+        });
+
+    })();
+  </script>
+</body>
+</html>

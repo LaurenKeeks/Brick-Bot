@@ -608,16 +608,21 @@
         var detailUrl = canLookupOnRebrickable ? buildDetailUrl(data) : null;
         var bricklinkSearchUrl = 'https://www.bricklink.com/v2/search.page?q=' + encodeURIComponent(data.partName || data.partNumber);
 
-        // Auto-redirect for High or Medium confidence — only for regular parts with Rebrickable IDs
+        // Auto-redirect for High or Medium confidence
         var conf = (data.confidence || '').toLowerCase();
-        if (canLookupOnRebrickable && !isFig && (conf === 'high' || conf === 'medium')) {
-          window.location.href = detailUrl;
-          return;
-        }
-        // For minifigs with Rebrickable fig- numbers, also auto-redirect
-        if (canLookupOnRebrickable && isFig && data.partNumber.indexOf('fig-') === 0 && (conf === 'high' || conf === 'medium')) {
-          window.location.href = detailUrl;
-          return;
+        if (conf === 'high' || conf === 'medium') {
+          if (isFig) {
+            // Minifigs go to minifig.html with name + image
+            var autoMinifigUrl = 'minifig.html?fig=' + encodeURIComponent(data.partName);
+            if (data.partImgUrl) autoMinifigUrl += '&img=' + encodeURIComponent(data.partImgUrl);
+            if (data.partNumber) autoMinifigUrl += '&num=' + encodeURIComponent(data.partNumber);
+            window.location.href = autoMinifigUrl;
+            return;
+          }
+          if (canLookupOnRebrickable) {
+            window.location.href = detailUrl;
+            return;
+          }
         }
 
         // Show results on this page
@@ -663,15 +668,16 @@
           });
         }
 
-        // CTA button — Rebrickable detail page or BrickLink search
-        if (detailUrl) {
-          if (isFig) {
-            html += '<a class="mystery-cta" href="' + detailUrl + '">View sets this minifig appears in \u2192</a>';
-          } else {
-            html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
-          }
+        // CTA button
+        if (isFig) {
+          // Minifigs always go to minifig.html with name + image
+          var minifigDetailUrl = 'minifig.html?fig=' + encodeURIComponent(data.partName);
+          if (data.partImgUrl) minifigDetailUrl += '&img=' + encodeURIComponent(data.partImgUrl);
+          if (data.partNumber) minifigDetailUrl += '&num=' + encodeURIComponent(data.partNumber);
+          html += '<a class="mystery-cta" href="' + minifigDetailUrl + '">View full details \u2192</a>';
+        } else if (detailUrl) {
+          html += '<a class="mystery-cta" href="' + detailUrl + '">View full details \u2192</a>';
         } else {
-          // No Rebrickable lookup possible — link to BrickLink search
           html += '<a class="mystery-cta" href="' + bricklinkSearchUrl + '" target="_blank" rel="noopener">Search BrickLink \u2192</a>';
         }
         html += '<button class="mystery-retry-btn" id="results-try-again" style="display:block;width:100%;max-width:300px;margin:16px auto 0;padding:12px;border-radius:12px;border:2px solid #ddd;background:transparent;color:var(--muted-gray);font-weight:700;font-size:14px;cursor:pointer;font-family:Nunito,sans-serif;">Try Another Piece</button>';
